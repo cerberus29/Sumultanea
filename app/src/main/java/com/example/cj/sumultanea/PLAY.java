@@ -30,7 +30,6 @@ public class PLAY extends AppCompatActivity {
         setContentView(R.layout.activity_play);
         ImageView imageView = (ImageView) findViewById(R.id.imageView2);
         imageView.clearAnimation();
-        setContentView(R.layout.activity_characters);
 
         switch (character) {
             case CHARACTER1:
