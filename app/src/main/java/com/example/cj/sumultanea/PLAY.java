@@ -1,16 +1,19 @@
 package com.example.cj.sumultanea;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.graphics.drawable.AnimationDrawable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import static com.example.cj.sumultanea.R.styleable.View;
+import java.util.Random;
+
 import static com.example.cj.sumultanea.simultanea.CHARACTER1;
 import static com.example.cj.sumultanea.simultanea.CHARACTER2;
 import static com.example.cj.sumultanea.simultanea.CHARACTER3;
@@ -18,8 +21,10 @@ import static com.example.cj.sumultanea.simultanea.CHARACTER4;
 import static com.example.cj.sumultanea.simultanea.TAG;
 
 
-public class PLAY extends AppCompatActivity {
+public class PLAY extends AppCompatActivity implements View.OnClickListener {
     private QuizPool quizPool;
+    private Random random;
+    private QuizPool.Entry currentQuestion;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,12 +55,53 @@ public class PLAY extends AppCompatActivity {
         AnimationDrawable anim = (AnimationDrawable) imageView.getDrawable();
         anim.start();
         quizPool = new QuizPool(this);
+        random = new Random();
         newQuestion();
     }
 
     private void newQuestion() {
-        QuizPool.Entry entry = quizPool.getQuestion();
+        currentQuestion = quizPool.getQuestion();
         TextView questionText = (TextView) findViewById(R.id.textView4);
-        questionText.setText(entry.question);
+        questionText.setText(currentQuestion.question);
+        LinearLayout answersLayout = (LinearLayout) findViewById(R.id.answersLayout);
+
+        // We clear-out the old buttons, and create new ones for the current question
+        answersLayout.removeAllViews();
+        int count = 0;
+        for (QuizPool.Answer answer: currentQuestion.answers) {
+            Button button = new Button(this);
+            button.setText(answer.text);
+            button.setOnClickListener(this);
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            lp.gravity = Gravity.CENTER;
+            button.setLayoutParams(lp);
+            if (count == 0) {
+                answersLayout.addView(button);
+            } else {
+                // insert at random position
+                int index = random.nextInt(count);
+                answersLayout.addView(button, index);
+            }
+            count++;
+        }
+    }
+
+    @Override
+    public void onClick(View v) {
+        Button button = (Button) v;
+        // Check which answer correspond that button.
+        for (QuizPool.Answer answer: currentQuestion.answers) {
+            if (answer.text.equals(button.getText())) {
+                if (answer.correct) {
+                    Log.d(TAG, "Correct!");
+                    // TODO: increment score, display something
+                } else {
+                    Log.d(TAG, "Incorrect!");
+                    // TODO: display something
+                }
+                newQuestion();
+                return;
+            }
+        }
     }
 }

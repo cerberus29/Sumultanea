@@ -12,41 +12,43 @@
     tools:context="com.example.cj.sumultanea.PLAY"
     android:background="@android:color/holo_blue_light">
 
-    <Button
-        android:text="Button"
+    <LinearLayout
+        android:id="@+id/answersLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:id="@+id/answer4"
-        android:gravity="center"
-        android:layout_alignParentStart="true" />
+        android:layout_alignParentStart="true"
+        android:orientation="vertical">
 
-    <Button
-        android:text="Button"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/answer3"
-        android:layout_above="@+id/answer4"
-        android:gravity="center"
-        android:layout_alignParentStart="true" />
+        <Button
+            android:text="Button"
+            android:id="@+id/answer4"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center" />
 
-    <Button
-        android:text="Button"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/answer2"
-        android:layout_above="@+id/answer3"
-        android:gravity="center"
-        android:layout_alignParentStart="true" />
+        <Button
+            android:text="Button"
+            android:id="@+id/answer3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center" />
 
-    <Button
-        android:text="Button"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/answer"
-        android:layout_above="@+id/answer2"
-        android:gravity="center"
-        android:layout_alignParentStart="true" />
+        <Button
+            android:text="Button"
+            android:id="@+id/answer2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center" />
+
+        <Button
+            android:text="Button"
+            android:id="@+id/answer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center" />
+
+    </LinearLayout>
 
     <LinearLayout
         android:orientation="vertical"

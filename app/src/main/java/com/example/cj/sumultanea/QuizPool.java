@@ -20,20 +20,24 @@ import java.util.Random;
 
 import static android.content.Context.MODE_PRIVATE;
 
-public class QuizPool {
+/**
+ * As the name indicates, this class provides a pool of questions for the quiz.
+ * The list of questions is read from an XML file and stored in a list.
+ */
+class QuizPool {
     private static final String TAG = "QuizPool";
     private static final String poolFileName = "quizpool.xml";
     private Context context;
     private List<Entry> entries;
     private Random random;
 
-    public QuizPool(Context context) {
+    QuizPool(Context context) {
         this.context = context;
         random = new Random();
         refresh();
     }
 
-    public Entry getQuestion() {
+    Entry getQuestion() {
         if (entries == null || entries.isEmpty())
             return null;
         return entries.get(random.nextInt(entries.size()));
@@ -41,19 +45,30 @@ public class QuizPool {
 
     private void refresh() {
         File localPoolFile = context.getFileStreamPath(poolFileName);
-        // On first run, or whenever the app is updated, copy the default quizpool file from our
-        // resources to the app private data. It can be refreshed later with a new copy from
-        // internet (todo)
-        long lastUpdateTime = 0;
-        try {
-            PackageInfo packageInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
-            lastUpdateTime = packageInfo.lastUpdateTime;
-        } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
-            return;
+        Boolean needsUpdate = false;
+
+        // Check if we already have a quiz pool file installed
+        if (!localPoolFile.exists()) {
+            needsUpdate = true;
+        } else {
+            // Check if the current xml file is outdated (older than the app)
+            long lastUpdateTime = 0;
+            try {
+                PackageInfo packageInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
+                lastUpdateTime = packageInfo.lastUpdateTime;
+            } catch (PackageManager.NameNotFoundException e) {
+                e.printStackTrace();
+                return;
+            }
+            long lastModified = localPoolFile.lastModified();
+            if (lastModified < lastUpdateTime) {
+                needsUpdate = true;
+            }
         }
-        long lastModified = localPoolFile.lastModified();
-        if (!localPoolFile.exists() || lastModified < lastUpdateTime) {
+
+        if (needsUpdate) {
+            // Install a copy of the default XML (TODO: attempt to fetch newer list from Internet)
+            // Following example from: https://developer.android.com/reference/android/content/Context.html#getExternalFilesDir(java.lang.String)
             try {
                 InputStream is = context.getResources().openRawResource(R.raw.quizpool);
                 OutputStream os = context.openFileOutput(poolFileName, MODE_PRIVATE);
@@ -68,8 +83,7 @@ public class QuizPool {
             }
         }
 
-        //TODO: launch a background task top download a new version of the quiz pool file
-
+        // Now parse the XML file and refresh our list of questions
         FileInputStream stream;
         try {
             stream = context.openFileInput(poolFileName);
@@ -84,6 +98,7 @@ public class QuizPool {
         }
     }
 
+    // XML parsing code following the example from: https://developer.android.com/training/basics/network-ops/xml.html
     // We don't use namespaces
     private static final String ns = null;
     private static final String KEY_QUIZ = "quiz";
