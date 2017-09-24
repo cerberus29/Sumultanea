@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context="com.example.cj.sumultanea.simultanea"
+    android:background="@android:color/holo_blue_light">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="right"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true"
+        android:background="@android:color/holo_blue_light">
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:id="@+id/Top_row"
+            android:layout_weight="1">
+
+            <Button
+                android:text="ACHIEVEMENTS"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/ACHIEVEMENTS"
+                android:layout_weight="1" />
+
+            <Button
+                android:text="LEADERBOARD"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/LEADERBOARD"
+                android:layout_weight="1" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:id="@+id/center_row"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
+
+            <Button
+                android:text="PLAY"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/PLAY" />
+
+            <Button
+                android:text="CHARACTERS"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/CHARACTERS" />
+
+            <Button
+                android:text="SETTINGS"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/SETTINGS" />
+
+            <Button
+                android:text="PROFILE"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/PROFILE" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:id="@+id/bottom_row"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:gravity="bottom"
+            android:baselineAligned="false">
+
+            <ImageButton
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:scaleType="fitXY"
+                android:id="@+id/imageButton2"
+                android:layout_weight="1"
+                app:srcCompat="@drawable/sett"
+                android:focusable="false"
+                android:background="@android:color/transparent" />
+
+            <ImageButton
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:scaleType="fitXY"
+                app:srcCompat="@drawable/fb"
+                android:id="@+id/imageButton"
+                android:layout_weight="1"
+                android:background="@android:color/transparent" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+</RelativeLayout>

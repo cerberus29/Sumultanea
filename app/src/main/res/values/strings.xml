@@ -1,0 +1,79 @@
+<resources>
+    <string name="edit_message">Enter a Message</string>
+    <string name="app_name">Simultanea</string>
+    <string name="read_from_file_button">Read quiz from file</string>
+
+    <string name="edit_question">Question</string>
+    <string name="edit_choice_a">A</string>
+    <string name="edit_choice_b">B</string>
+    <string name="edit_choice_c">C</string>
+    <string name="edit_choice_d">D</string>
+    <string name="add_question">Add Question</string>
+
+    <string name="quiz_status">Quiz Status</string>
+    <string name="question_placeholder">Question</string>
+    <string name="question_unanswered">This question has not yet been answered.</string>
+    <string name="question_incorrect">This question has been answered incorrectly.</string>
+    <string name="question_correct">This question has been answered correctly!</string>
+    <string name="question_left_blank">This question was left blank.</string>
+
+    <string name="reset_quiz">Reset Quiz</string>
+    <string name="new_quiz">New Quiz</string>
+
+    <string name="Q_MC_1">Which of these is a word that refers to words, phrases, or sequences that read the same backward as it does forward?</string>
+    <string name="Q_MC_1_A1">Palindrome</string>
+    <string name="Q_MC_1_A2">Gerund</string>
+    <string name="Q_MC_1_A3">Emordnilap</string>
+    <string name="Q_MC_1_A4">Reversive</string>
+
+    <string name="Q_MC_2">Which of these is a word that refers to words that produce other words when spelled backwards? Also known as reverse pairs.</string>
+    <string name="Q_MC_2_A1">Emordnilap</string>
+    <string name="Q_MC_2_A2">Reversive</string>
+    <string name="Q_MC_2_A3">Gerund</string>
+    <string name="Q_MC_2_A4">Palindrome</string>
+
+    <string name="Q_MC_3">What is a noun that is derived from a verb but functions as a noun ending in -ing?</string>
+    <string name="Q_MC_3_A1">Gerund</string>
+    <string name="Q_MC_3_A2">Infinitive</string>
+    <string name="Q_MC_3_A3">Modal</string>
+    <string name="Q_MC_3_A4">Phrase</string>
+
+    <string name="Q_MC_4">Which of these is an example of a Palindrome?</string>
+    <string name="Q_MC_4_A1">Racecar</string>
+    <string name="Q_MC_4_A2">Swimming</string>
+    <string name="Q_MC_4_A3">Driving</string>
+    <string name="Q_MC_4_A4">Read</string>
+
+    <string name="Q_MC_5">Which of these words is spelled correctly?</string>
+    <string name="Q_MC_5_A1">Definitely</string>
+    <string name="Q_MC_5_A2">Dissapear</string>
+    <string name="Q_MC_5_A3">Separate</string>
+    <string name="Q_MC_5_A4">Dissapoint</string>
+
+    <string name="Q_MC_6">Which of these words is spelled incorrectly?</string>
+    <string name="Q_MC_6_A1">Dissapoint</string>
+    <string name="Q_MC_6_A2">Definitely</string>
+    <string name="Q_MC_6_A3">Dilemma</string>
+    <string name="Q_MC_6_A4">Disappear</string>
+
+    <string name="Q_MC_7">Which of these is the proper order for adjectives?</string>
+    <string name="Q_MC_7_A1">Determiners, Quantity, Observations, Size, Shape, Age, Color, Origin, Material, Qualifier</string>
+    <string name="Q_MC_7_A2">Qualifier, Material, Origin, Color, Age, Shape, Size, Observations, Quantity, Determiners</string>
+    <string name="Q_MC_7_A3">Determiners, Quantity, Observations, Size, Shape, Qualifier, Material, Origin, Color, Age</string>
+    <string name="Q_MC_7_A4">Shape, Size, Observations, Quantity, Determiners, Age, Color, Origin, Material, Qualifier</string>
+
+    <string name="Q_MC_8">(Tide - Edit), (Slap - Pals), (Peek - Keep), (Dab - Bad) are examples of what?</string>
+    <string name="Q_MC_8_A1">Emordnilaps</string>
+    <string name="Q_MC_8_A2">Reversives</string>
+    <string name="Q_MC_8_A3">Gerunds</string>
+    <string name="Q_MC_8_A4">Palindromes</string>
+
+    <string name="Q_MC_9">Which of these sentences is in the proper adjective order?</string>
+    <string name="Q_MC_9_A1">Let’s order a delicious, huge, round, pepperoni pizza.</string>
+    <string name="Q_MC_9_A2">A new, interesting book.</string>
+    <string name="Q_MC_9_A3">A black, small, marble table.</string>
+    <string name="Q_MC_9_A4">An orange, ugly ribbon.</string>
+
+
+
+</resources>

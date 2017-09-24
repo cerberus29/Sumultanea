@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animation-list xmlns:android="http://schemas.android.com/apk/res/android"
+                android:id="@+id/war" android:oneshot="false">
+    <item android:drawable="@drawable/war1" android:duration="200" />
+    <item android:drawable="@drawable/war2" android:duration="200" />
+</animation-list>
