@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<quiz>
+	<entry type="mc">
+		<question>Which of these is a word that refers to words, phrases, or sequences that read the same backward as it does forward?</question>
+		<answer correct="true">Palindrome</answer>
+		<answer>Gerund</answer>
+		<answer>Emordnilap</answer>
+		<answer>Reversive</answer>
+	</entry>
+	<entry type="mc">
+		<question>Which of these is a word that refers to words that produce other words when spelled backwards? Also known as reverse pairs.</question>
+		<answer correct="true">Emordnilap</answer>
+		<answer>Reversive</answer>
+		<answer>Gerund</answer>
+		<answer>Palindrome</answer>
+	</entry>
+	<entry type="mc">
+		<question>What is a noun that is derived from a verb but functions as a noun ending in -ing?</question>
+		<answer correct="true">Gerund</answer>
+		<answer>Infinitive</answer>
+		<answer>Modal</answer>
+		<answer>Phrase</answer>
+	</entry>
+	<entry type="mc">
+		<question>Which of these is an example of a Palindrome?</question>
+		<answer correct="true">Racecar</answer>
+		<answer>Swimming</answer>
+		<answer>Driving</answer>
+		<answer>Read</answer>
+	</entry>
+	<entry type="mc">
+		<question>Which of these words is spelled correctly?</question>
+		<answer correct="true">Definitely</answer>
+		<answer>Dissapear</answer>
+		<answer>Seperate</answer>
+		<answer>Dissapoint</answer>
+	</entry>
+	<entry type="mc">
+		<question>Which of these words is spelled incorrectly?</question>
+		<answer correct="true">Dissapoint</answer>
+		<answer>Definitely</answer>
+		<answer>Dilemma</answer>
+		<answer>Disappear</answer>
+	</entry>
+	<entry type="mc">
+		<question>Which of these is the proper order for adjectives?</question>
+		<answer correct="true">Determiners, Quantity, Observations, Size, Shape, Age, Color, Origin, Material, Qualifier</answer>
+		<answer>Qualifier, Material, Origin, Color, Age, Shape, Size, Observations, Quantity, Determiners</answer>
+		<answer>Determiners, Quantity, Observations, Size, Shape, Qualifier, Material, Origin, Color, Age</answer>
+		<answer>Shape, Size, Observations, Quantity, Determiners, Age, Color, Origin, Material, Qualifier</answer>
+	</entry>
+	<entry type="mc">
+		<question>(Tide - Edit), (Slap - Pals), (Peek - Keep), (Dab - Bad) are examples of what?</question>
+		<answer correct="true">Emordnilaps</answer>
+		<answer>Reversives</answer>
+		<answer>Gerunds</answer>
+		<answer>Palindromes</answer>
+	</entry>
+	<entry type="mc">
+		<question>Which of these sentences is in the proper adjective order?</question>
+		<answer correct="true">Let’s order a delicious, huge, round, pepperoni pizza.</answer>
+		<answer>A new, interesting book.</answer>
+		<answer>A black, small, marble table.</answer>
+		<answer>An orange, ugly ribbon.</answer>
+	</entry>
+</quiz>

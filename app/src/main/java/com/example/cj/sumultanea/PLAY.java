@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import static com.example.cj.sumultanea.R.styleable.View;
 import static com.example.cj.sumultanea.simultanea.CHARACTER1;
@@ -18,7 +19,7 @@ import static com.example.cj.sumultanea.simultanea.TAG;
 
 
 public class PLAY extends AppCompatActivity {
-
+    private QuizPool quizPool;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,5 +49,13 @@ public class PLAY extends AppCompatActivity {
         }
         AnimationDrawable anim = (AnimationDrawable) imageView.getDrawable();
         anim.start();
+        quizPool = new QuizPool(this);
+        newQuestion();
+    }
+
+    private void newQuestion() {
+        QuizPool.Entry entry = quizPool.getQuestion();
+        TextView questionText = (TextView) findViewById(R.id.textView4);
+        questionText.setText(entry.question);
     }
 }
