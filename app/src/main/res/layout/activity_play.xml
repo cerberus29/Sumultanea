@@ -56,7 +56,8 @@
         android:layout_height="match_parent"
         android:layout_above="@+id/answer"
         android:layout_alignParentEnd="true"
-        android:layout_marginBottom="296dp">
+        android:layout_marginBottom="296dp"
+        android:id="@+id/linearLayout">
 
         <ImageView
             android:id="@+id/imageView2"
@@ -72,18 +73,18 @@
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentBottom="true">
+        android:layout_alignParentEnd="true">
 
         <TextView
             android:text="TextView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_width="120dp"
+            android:layout_height="200dp"
             android:layout_alignParentTop="true"
             android:id="@+id/textView4"
             android:layout_alignParentEnd="true"
-            android:layout_weight="1" />
+            android:layout_weight="1"
+            android:gravity="top|bottom|right" />
 
     </LinearLayout>
+
 </RelativeLayout>

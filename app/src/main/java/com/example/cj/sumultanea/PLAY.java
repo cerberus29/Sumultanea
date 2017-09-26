@@ -27,6 +27,7 @@ public class PLAY extends AppCompatActivity implements View.OnClickListener {
     private Random random;
     private QuizPool.Entry currentQuestion;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
