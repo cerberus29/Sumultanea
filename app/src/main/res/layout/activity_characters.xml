@@ -10,7 +10,7 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.example.cj.sumultanea.characters"
-    android:background="@drawable/cs">
+    android:background="@drawable/settingsbg">
 
 
     <ImageButton
