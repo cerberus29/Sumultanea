@@ -9,7 +9,7 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.example.cj.sumultanea.simultanea"
-    android:background="@android:color/holo_blue_light">
+    android:background="@drawable/pix">
 
     <LinearLayout
         android:orientation="vertical"
@@ -18,7 +18,7 @@
         android:gravity="right"
         android:layout_alignParentTop="true"
         android:layout_alignParentStart="true"
-        android:background="@android:color/holo_blue_light">
+        android:background="@android:color/transparent">
 
         <LinearLayout
             android:orientation="horizontal"
@@ -26,20 +26,6 @@
             android:layout_height="0dp"
             android:id="@+id/Top_row"
             android:layout_weight="1">
-
-            <Button
-                android:text="ACHIEVEMENTS"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/ACHIEVEMENTS"
-                android:layout_weight="1" />
-
-            <Button
-                android:text="LEADERBOARD"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/LEADERBOARD"
-                android:layout_weight="1" />
 
         </LinearLayout>
 
