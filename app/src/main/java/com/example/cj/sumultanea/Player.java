@@ -14,16 +14,11 @@ import static com.example.cj.sumultanea.simultanea.CHARACTER3;
 import static com.example.cj.sumultanea.simultanea.CHARACTER4;
 
 public class Player {
-
-    private AnimationDrawable animation;
-    private Drawable frame;
-    private int currentFrame = 0;
-    private int updatesSinceLastFrame = 0;
-    private int x = 0, y = 0;
-    private int dx = 1, dy = 0;
-
+    public AnimationDrawable animation;
+    public int lives;
     public Player(Context context, int character) {
         Resources res = context.getResources();
+        lives = 3;
         switch (character) {
             case CHARACTER1:
                 animation = (AnimationDrawable)res.getDrawable(R.drawable.bluepanda);
@@ -38,28 +33,5 @@ public class Player {
                 animation = (AnimationDrawable)res.getDrawable(R.drawable.war);
                 break;
         }
-    }
-
-    public void update() {
-        x += dx;
-        y += dy;
-        if (x < 0 || x > 500) {
-            x = 0;
-        }
-        if (y < 0 || y > 500) {
-            y = 0;
-        }
-    }
-
-    public void draw(Canvas canvas, Paint paint) {
-        if (++updatesSinceLastFrame > 10) {
-            if (++currentFrame >= animation.getNumberOfFrames()) {
-                currentFrame = 0;
-            }
-            updatesSinceLastFrame = 0;
-        }
-        frame = animation.getFrame(currentFrame);
-        frame.setBounds(x, y, x+200, y+200);
-        frame.draw(canvas);
     }
 }

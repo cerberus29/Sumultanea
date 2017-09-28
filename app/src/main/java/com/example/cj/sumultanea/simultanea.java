@@ -27,8 +27,7 @@ public class simultanea extends AppCompatActivity implements View.OnClickListene
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-
-        MediaPlayer ring= MediaPlayer.create(simultanea.this,R.raw.home);
+        MediaPlayer ring = MediaPlayer.create(this, R.raw.home);
         ring.setLooping(true);
         ring.start();
 
