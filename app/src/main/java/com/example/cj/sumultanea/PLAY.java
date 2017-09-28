@@ -27,11 +27,20 @@ public class PLAY extends AppCompatActivity implements View.OnClickListener {
     private Random random;
     private QuizPool.Entry currentQuestion;
 
+    Button clk1, clk2;
+    MediaPlayer mdx;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        clk1 = (Button) findViewById(R.id.PLAY);
+        clk2 = (Button) findViewById(R.id.CHARACTERS);
+
+
+
+        MediaPlayer ring= MediaPlayer.create(PLAY.this,R.raw.fight2);
+        ring.start();
 
         Intent intent = getIntent();
         int character = intent.getIntExtra(simultanea.CHARACTER_KEY, CHARACTER1);

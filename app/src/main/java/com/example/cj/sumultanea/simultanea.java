@@ -1,6 +1,7 @@
 package com.example.cj.sumultanea;
 
 import android.content.Intent;
+import android.media.MediaPlayer;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -25,6 +26,10 @@ public class simultanea extends AppCompatActivity implements View.OnClickListene
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+
+        MediaPlayer ring= MediaPlayer.create(simultanea.this,R.raw.home);
+        ring.start();
 
         setContentView(R.layout.activity_simultanea);
 
