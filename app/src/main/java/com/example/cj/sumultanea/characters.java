@@ -18,6 +18,7 @@ public class characters extends AppCompatActivity implements View.OnClickListene
         setContentView(R.layout.activity_characters);
 
         MediaPlayer ring = MediaPlayer.create(characters.this, R.raw.fight1);
+        ring.setLooping(true);
         ring.start();
         // Start all button animations
         ImageButton btn;

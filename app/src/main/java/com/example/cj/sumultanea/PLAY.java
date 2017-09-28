@@ -40,6 +40,7 @@ public class PLAY extends AppCompatActivity implements View.OnClickListener {
 
 
         MediaPlayer ring= MediaPlayer.create(PLAY.this,R.raw.fight2);
+        ring.setLooping(true);
         ring.start();
 
         Intent intent = getIntent();

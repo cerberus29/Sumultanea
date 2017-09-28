@@ -29,6 +29,7 @@ public class simultanea extends AppCompatActivity implements View.OnClickListene
 
 
         MediaPlayer ring= MediaPlayer.create(simultanea.this,R.raw.home);
+        ring.setLooping(true);
         ring.start();
 
         setContentView(R.layout.activity_simultanea);
