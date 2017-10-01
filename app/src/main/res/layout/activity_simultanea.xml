@@ -37,28 +37,32 @@
             android:layout_weight="1">
 
             <Button
-                android:text="PLAY"
+                android:id="@+id/PLAY"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/PLAY" />
+                android:onClick="onClickPlay"
+                android:text="PLAY" />
 
             <Button
-                android:text="CHARACTERS"
+                android:id="@+id/CHARACTERS"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/CHARACTERS" />
+                android:onClick="onClickCharacters"
+                android:text="CHARACTERS" />
 
             <Button
-                android:text="SETTINGS"
+                android:id="@+id/SETTINGS"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/SETTINGS" />
+                android:onClick="onClickSettings"
+                android:text="SETTINGS" />
 
             <Button
-                android:text="PROFILE"
+                android:id="@+id/PROFILE"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/PROFILE" />
+                android:onClick="onClickProfile"
+                android:text="PROFILE" />
         </LinearLayout>
 
         <LinearLayout

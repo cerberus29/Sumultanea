@@ -16,7 +16,9 @@ import static com.example.cj.sumultanea.simultanea.CHARACTER4;
 public class Player {
     public AnimationDrawable animation;
     public int lives;
-    public Player(Context context, int character) {
+    public String name;
+    public Player(Context context, int character, String name) {
+        this.name = name;
         Resources res = context.getResources();
         lives = 3;
         switch (character) {

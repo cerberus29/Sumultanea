@@ -74,6 +74,14 @@
     <string name="Q_MC_9_A3">A black, small, marble table.</string>
     <string name="Q_MC_9_A4">An orange, ugly ribbon.</string>
 
-
+    <string name="answer_correct">Correct! Please choose a player to attack.</string>
+    <string name="answer_incorrect">Incorrect! Please wait for other players to decide your fate.</string>
+    <string name="fate_attacked">You got attacked!</string>
+    <string name="fate_spared">You got spared, this time…</string>
+    <string name="do_attack">Attacking player %1$s!</string>
+    <string name="attack_killed">You killed player %1$s</string>
+    <string name="game_over">You have no more lives, GAME OVER!</string>
+    <string name="game_not_over">You have %1$d lives left.</string>
+    <string name="game_won">You are the last player standing, YOU WIN!!!</string>
 
 </resources>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Custom unique ids used when attaching information to layout views
+See:
+https://developer.android.com/reference/android/view/View.html#setTag(int, java.lang.Object)
+https://developer.android.com/guide/topics/resources/more-resources.html#Id
+-->
+<resources>
+    <item type="id" name="id_answer" />
+    <item type="id" name="id_player" />
+</resources>

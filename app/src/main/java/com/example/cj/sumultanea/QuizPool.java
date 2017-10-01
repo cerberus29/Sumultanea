@@ -29,6 +29,7 @@ class QuizPool {
     private static final String poolFileName = "quizpool.xml";
     private Context context;
     private List<Entry> entries;
+    private List<Entry> used_entries = new ArrayList<>();
     private Random random;
 
     QuizPool(Context context) {
@@ -38,9 +39,21 @@ class QuizPool {
     }
 
     Entry getQuestion() {
-        if (entries == null || entries.isEmpty())
+        if (entries == null)
             return null;
-        return entries.get(random.nextInt(entries.size()));
+        // When the list is empty, we recycle the old questions.
+        if (entries.isEmpty()) {
+            if (used_entries.isEmpty()) {
+                return null;
+            } else {
+                entries.addAll(used_entries);
+                used_entries.clear();
+            }
+        }
+        // Take a random question
+        Entry e = entries.remove(random.nextInt(entries.size()));
+        used_entries.add(e);
+        return e;
     }
 
     private void refresh() {

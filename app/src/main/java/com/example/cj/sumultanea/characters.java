@@ -9,7 +9,7 @@ import android.view.View;
 import android.widget.ImageButton;
 
 public class characters extends AppCompatActivity implements View.OnClickListener {
-
+    private MediaPlayer mediaPlayer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -17,29 +17,37 @@ public class characters extends AppCompatActivity implements View.OnClickListene
 
         setContentView(R.layout.activity_characters);
 
-        MediaPlayer ring = MediaPlayer.create(characters.this, R.raw.fight1);
-        ring.setLooping(true);
-        ring.start();
         // Start all button animations
         ImageButton btn;
         AnimationDrawable anim;
-        btn = (ImageButton) findViewById(R.id.buttonCharacter1);
+        btn = findViewById(R.id.buttonCharacter1);
         anim = (AnimationDrawable) btn.getDrawable();
         anim.start();
-        btn = (ImageButton) findViewById(R.id.buttonCharacter2);
+        btn = findViewById(R.id.buttonCharacter2);
         anim = (AnimationDrawable) btn.getDrawable();
         anim.start();
-        btn = (ImageButton) findViewById(R.id.buttonCharacter3);
+        btn = findViewById(R.id.buttonCharacter3);
         anim = (AnimationDrawable) btn.getDrawable();
         anim.start();
-        btn = (ImageButton) findViewById(R.id.buttonCharacter4);
+        btn = findViewById(R.id.buttonCharacter4);
         anim = (AnimationDrawable) btn.getDrawable();
         anim.start();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mediaPlayer = MediaPlayer.create(characters.this, R.raw.fight1);
+        mediaPlayer.setLooping(true);
+        mediaPlayer.start();
+    }
 
-
-
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mediaPlayer.stop();
+        mediaPlayer.release();
+    }
 
     @Override
     public void onClick(View view) {
