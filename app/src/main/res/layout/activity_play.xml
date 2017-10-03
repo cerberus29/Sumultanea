@@ -10,7 +10,7 @@
 
     <LinearLayout
         android:id="@+id/playersLayout"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         app:layout_constraintTop_toTopOf="parent"
@@ -19,8 +19,7 @@
         app:layout_constraintRight_toRightOf="parent"
         android:layout_marginLeft="16dp"
         android:layout_marginRight="16dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp">
+        android:layout_marginTop="0dp">
 
         <ImageView
             android:id="@+id/imageView2"
@@ -54,16 +53,14 @@
     <LinearLayout
         android:id="@+id/questionLayout"
         android:orientation="horizontal"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layout_constraintTop_toBottomOf="@+id/playersLayout"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         android:layout_marginLeft="16dp"
         android:layout_marginRight="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp">
+        android:layout_marginTop="16dp">
 
         <TextView
             android:id="@+id/textView4"
@@ -78,7 +75,7 @@
 
     <LinearLayout
         android:id="@+id/answersLayout"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -86,9 +83,7 @@
         app:layout_constraintLeft_toLeftOf="parent"
         android:layout_marginLeft="16dp"
         android:layout_marginRight="16dp"
-        android:layout_marginBottom="16dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp">
+        android:layout_marginBottom="16dp">
 
         <Button
             android:text="Button"

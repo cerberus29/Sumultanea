@@ -59,13 +59,13 @@ public class PLAY extends AppCompatActivity {
         setContentView(R.layout.activity_play);
 
         // These are the portions of the layout that we will modify during the game
-        questionText = (TextView) findViewById(R.id.textView4);
-        answersLayout = (LinearLayout) findViewById(R.id.answersLayout);
-        otherPlayersLayout = (LinearLayout) findViewById(R.id.otherPlayersLayout);
-        localPlayerLivesLayout = (LinearLayout) findViewById(R.id.localPlayerLivesLayout);
+        questionText = findViewById(R.id.textView4);
+        answersLayout = findViewById(R.id.answersLayout);
+        otherPlayersLayout = findViewById(R.id.otherPlayersLayout);
+        localPlayerLivesLayout = findViewById(R.id.localPlayerLivesLayout);
 
         // Set our character image
-        ImageView imageView = (ImageView) findViewById(R.id.imageView2);
+        ImageView imageView = findViewById(R.id.imageView2);
         imageView.setImageDrawable(me.animation);
         me.animation.start();
 
