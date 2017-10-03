@@ -20,16 +20,16 @@ public class characters extends AppCompatActivity implements View.OnClickListene
         // Start all button animations
         ImageButton btn;
         AnimationDrawable anim;
-        btn = findViewById(R.id.buttonCharacter1);
+        btn = (ImageButton) findViewById(R.id.buttonCharacter1);
         anim = (AnimationDrawable) btn.getDrawable();
         anim.start();
-        btn = findViewById(R.id.buttonCharacter2);
+        btn = (ImageButton) findViewById(R.id.buttonCharacter2);
         anim = (AnimationDrawable) btn.getDrawable();
         anim.start();
-        btn = findViewById(R.id.buttonCharacter3);
+        btn = (ImageButton) findViewById(R.id.buttonCharacter3);
         anim = (AnimationDrawable) btn.getDrawable();
         anim.start();
-        btn = findViewById(R.id.buttonCharacter4);
+        btn = (ImageButton) findViewById(R.id.buttonCharacter4);
         anim = (AnimationDrawable) btn.getDrawable();
         anim.start();
     }
