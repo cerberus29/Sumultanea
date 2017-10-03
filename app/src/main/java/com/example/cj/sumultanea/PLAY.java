@@ -10,6 +10,9 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.view.animation.LinearInterpolator;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -34,10 +37,13 @@ public class PLAY extends AppCompatActivity {
     private Player me;
     private List<Player> otherPlayers = new ArrayList<>();
     private LinearLayout otherPlayersLayout;
+    private LinearLayout localPlayerLivesLayout;
     private Handler handler = new Handler();
     private MediaPlayer ring;
     private final static int MESSAGE_DURATION_MS = 1500;
     private final static int LONG_MESSAGE_DURATION_MS = 3000;
+    private Animation fadeOutAnimation;
+    private ImageView fadingLifeImg = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,11 +62,25 @@ public class PLAY extends AppCompatActivity {
         questionText = findViewById(R.id.textView4);
         answersLayout = findViewById(R.id.answersLayout);
         otherPlayersLayout = findViewById(R.id.otherPlayersLayout);
+        localPlayerLivesLayout = findViewById(R.id.localPlayerLivesLayout);
 
         // Set our character image
         ImageView imageView = findViewById(R.id.imageView2);
         imageView.setImageDrawable(me.animation);
         me.animation.start();
+
+        // Display our lives
+        // Remove the fake content we put in the initial layout (for designing)
+        localPlayerLivesLayout.removeAllViews();
+        for (int i=0; i<me.lives; i++) {
+            ImageView lifeImg = new ImageView(this);
+            lifeImg.setImageResource(R.drawable.heart);
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(30, 30);
+            lp.gravity = Gravity.CENTER;
+            lifeImg.setLayoutParams(lp);
+            //lifeImg.setAdjustViewBounds(true);
+            localPlayerLivesLayout.addView(lifeImg);
+        }
 
         // Add fake players for now
         otherPlayers.add(new Player(this, CHARACTER3, "Arthur"));
@@ -179,7 +199,16 @@ public class PLAY extends AppCompatActivity {
         public void run() {
             if (random.nextInt(2) == 0) {
                 questionText.setText(R.string.fate_attacked);
+                if (fadeOutAnimation == null) {
+                    fadeOutAnimation = new AlphaAnimation(1, 0);
+                    fadeOutAnimation.setDuration(MESSAGE_DURATION_MS / 6);
+                    fadeOutAnimation.setInterpolator(new LinearInterpolator());
+                    fadeOutAnimation.setRepeatCount(Animation.INFINITE);
+                    fadeOutAnimation.setRepeatMode(Animation.REVERSE);
+                }
                 me.lives--;
+                fadingLifeImg = (ImageView) localPlayerLivesLayout.getChildAt(me.lives);
+                fadingLifeImg.startAnimation(fadeOutAnimation);
                 handler.postDelayed(doAnnounceDamage, MESSAGE_DURATION_MS);
             } else {
                 questionText.setText(R.string.fate_spared);
@@ -191,6 +220,9 @@ public class PLAY extends AppCompatActivity {
     private Runnable doAnnounceDamage = new Runnable() {
         @Override
         public void run() {
+            fadingLifeImg.setVisibility(View.GONE);
+            fadingLifeImg.clearAnimation();
+            localPlayerLivesLayout.removeView(fadingLifeImg);
             if (me.lives == 0) {
                 questionText.setText(R.string.game_over);
                 handler.postDelayed(doFinishGame, MESSAGE_DURATION_MS);
