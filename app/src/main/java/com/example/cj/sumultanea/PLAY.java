@@ -83,9 +83,9 @@ public class PLAY extends AppCompatActivity {
         }
 
         // Add fake players for now
-        otherPlayers.add(new Player(this, CHARACTER3, "Arthur"));
-        otherPlayers.add(new Player(this, CHARACTER4, "Delia"));
-        otherPlayers.add(new Player(this, CHARACTER1, "Joaquin"));
+        otherPlayers.add(new Player(this, CHARACTER3, "Jack"));
+        otherPlayers.add(new Player(this, CHARACTER4, "Eve"));
+        otherPlayers.add(new Player(this, CHARACTER1, "Pandora"));
 
         // Remove the fake content we put in the initial layout (for designing)
         otherPlayersLayout.removeAllViews();
