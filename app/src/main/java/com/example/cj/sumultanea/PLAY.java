@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.LinearInterpolator;
@@ -42,7 +43,9 @@ public class PLAY extends AppCompatActivity {
     private MediaPlayer ring;
     private final static int MESSAGE_DURATION_MS = 1500;
     private final static int LONG_MESSAGE_DURATION_MS = 3000;
+    // Animation for when a player looses a life
     private Animation fadeOutAnimation;
+    // This is to keep track of which heart is currently animated (only one at a time), so we can stop the animation later
     private ImageView fadingLifeImg = null;
 
     @Override
@@ -91,24 +94,53 @@ public class PLAY extends AppCompatActivity {
         otherPlayersLayout.removeAllViews();
         // Fill other players row
         for (Player player: otherPlayers) {
-            ImageButton btn = new ImageButton(this);
+            // Container for player + 3 lives
+            LinearLayout playerAndLivesContainer = new LinearLayout(this);
+            // Vertical, because we want the player on top of the lives
+            playerAndLivesContainer.setOrientation(LinearLayout.VERTICAL);
 
+            // Player image
+            ImageButton btn = new ImageButton(this);
             // Attach the player data to the button
             btn.setTag(R.id.id_player, player);
-
             // Prepare the button style
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
             btn.setScaleType(ImageView.ScaleType.CENTER_CROP);
             btn.setImageDrawable(player.animation);
             player.animation.start();
             btn.setAdjustViewBounds(true);
             btn.setEnabled(false);
-            btn.setLayoutParams(lp);
+            btn.setLayoutParams(new LinearLayout.LayoutParams(170, 170));
             btn.setOnClickListener(onClickOtherPlayer);
+            // Add the player button to the vertical container (on top of the lives)
+            playerAndLivesContainer.addView(btn);
 
-            // Add the button to the players row
-            otherPlayersLayout.addView(btn);
+            // Sub-Container for 3 lives (row)
+            LinearLayout livesContainer = new LinearLayout(this);
+            // Horizontal, because we want the hearts lined-up side-by-side
+            livesContainer.setOrientation(LinearLayout.HORIZONTAL);
+            // Center horizontally based on parent container width
+            livesContainer.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+            livesContainer.setGravity(Gravity.CENTER);
+            for (int i=0; i<player.lives; i++) {
+                ImageView lifeImg = new ImageView(this);
+                lifeImg.setImageResource(R.drawable.heart);
+                lifeImg.setLayoutParams(new LinearLayout.LayoutParams(20, 20));
+                lifeImg.setAdjustViewBounds(true);
+                livesContainer.addView(lifeImg);
+            }
+            // Add the lives row to the vertical container (under the player icon)
+            playerAndLivesContainer.addView(livesContainer);
+
+            // Finally, add the player and its lives to the game layout.
+            otherPlayersLayout.addView(playerAndLivesContainer);
         }
+
+        // Prepare an animation object for when we loose a life
+        fadeOutAnimation = new AlphaAnimation(1, 0);
+        fadeOutAnimation.setDuration(MESSAGE_DURATION_MS / 6);
+        fadeOutAnimation.setInterpolator(new LinearInterpolator());
+        fadeOutAnimation.setRepeatCount(Animation.INFINITE);
+        fadeOutAnimation.setRepeatMode(Animation.REVERSE);
 
         // Let's get started!
         quizPool = new QuizPool(this);
@@ -180,18 +212,23 @@ public class PLAY extends AppCompatActivity {
         }
     };
 
-    private void disableAnswerButtons() {
-        for (int i=0; i<answersLayout.getChildCount(); i++) {
-            View v = answersLayout.getChildAt(i);
-            v.setEnabled(false);
+    // Go through a sub-tree of views and call setEnabled on every leaf (views)
+    private void recursiveSetEnabled(boolean enable, ViewGroup vg){
+        for (int i = 0; i < vg.getChildCount(); i++) {
+            View child = vg.getChildAt(i);
+            child.setEnabled(enable);
+            if (child instanceof ViewGroup) {
+                recursiveSetEnabled(enable, (ViewGroup)child);
+            }
         }
     }
 
+    private void disableAnswerButtons() {
+        recursiveSetEnabled(false, answersLayout);
+    }
+
     private void enablePlayersButtons(boolean enabled) {
-        for (int i=0; i<otherPlayersLayout.getChildCount(); i++) {
-            View v = otherPlayersLayout.getChildAt(i);
-            v.setEnabled(enabled);
-        }
+        recursiveSetEnabled(enabled, otherPlayersLayout);
     }
 
     private Runnable waitForYourFate = new Runnable() {
@@ -199,13 +236,6 @@ public class PLAY extends AppCompatActivity {
         public void run() {
             if (random.nextInt(2) == 0) {
                 questionText.setText(R.string.fate_attacked);
-                if (fadeOutAnimation == null) {
-                    fadeOutAnimation = new AlphaAnimation(1, 0);
-                    fadeOutAnimation.setDuration(MESSAGE_DURATION_MS / 6);
-                    fadeOutAnimation.setInterpolator(new LinearInterpolator());
-                    fadeOutAnimation.setRepeatCount(Animation.INFINITE);
-                    fadeOutAnimation.setRepeatMode(Animation.REVERSE);
-                }
                 me.lives--;
                 fadingLifeImg = (ImageView) localPlayerLivesLayout.getChildAt(me.lives);
                 fadingLifeImg.startAnimation(fadeOutAnimation);
@@ -251,13 +281,18 @@ public class PLAY extends AppCompatActivity {
     };
 
     private Player victim = null;
-    private View victim_view = null;
+    private LinearLayout victim_container = null;
     private View.OnClickListener onClickOtherPlayer = new View.OnClickListener() {
         public void onClick(View v) {
             enablePlayersButtons(false);
             // Check which answer correspond that button.
             victim = (Player) v.getTag(R.id.id_player);
-            victim_view = v;
+            // Find the live to animate
+            victim_container = (LinearLayout) v.getParent();
+            LinearLayout livesContainer = (LinearLayout) victim_container.getChildAt(1);
+            // The image we want is at the end of the row
+            fadingLifeImg = (ImageView) livesContainer.getChildAt(livesContainer.getChildCount()-1);
+            fadingLifeImg.startAnimation(fadeOutAnimation);
             String msg_without_player = getResources().getString(R.string.do_attack);
             String msg_with_player = String.format(msg_without_player, victim.name);
             questionText.setText(msg_with_player);
@@ -268,6 +303,11 @@ public class PLAY extends AppCompatActivity {
     private Runnable doAttackOtherPlayer = new Runnable() {
         @Override
         public void run() {
+            // Stop the animation and remove the fading life icon from it's container
+            fadingLifeImg.setVisibility(View.GONE);
+            fadingLifeImg.clearAnimation();
+            LinearLayout livesContainer = (LinearLayout) fadingLifeImg.getParent();
+            livesContainer.removeView(fadingLifeImg);
             if (victim.lives == 1) {
                 String msg_without_victim = getResources().getString(R.string.attack_killed);
                 String msg_with_victim = String.format(msg_without_victim, victim.name);
@@ -283,7 +323,8 @@ public class PLAY extends AppCompatActivity {
     private Runnable doRemovePlayer = new Runnable() {
         @Override
         public void run() {
-            otherPlayersLayout.removeView(victim_view);
+            // Remove the victim's entire layout, including lives and icon containers
+            otherPlayersLayout.removeView(victim_container);
             otherPlayers.remove(victim);
             if (otherPlayers.isEmpty()) {
                 questionText.setText(R.string.game_won);
