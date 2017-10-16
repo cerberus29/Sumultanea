@@ -24,15 +24,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import static com.example.cj.sumultanea.simultanea.CHARACTER1;
-import static com.example.cj.sumultanea.simultanea.CHARACTER3;
-import static com.example.cj.sumultanea.simultanea.CHARACTER4;
+import static com.example.cj.sumultanea.simultanea.DEFAULT_CHARACTER;
 import static com.example.cj.sumultanea.simultanea.TAG;
 
 
 public class PLAY extends AppCompatActivity {
     private QuizPool quizPool;
-    private Random random;
+    private Random random = new Random();
     TextView questionText;
     private LinearLayout answersLayout;
     private Player me;
@@ -54,7 +52,7 @@ public class PLAY extends AppCompatActivity {
 
         // Retrieve the character selection sent by the main activity as part of the "intent"
         Intent intent = getIntent();
-        int character = intent.getIntExtra(simultanea.CHARACTER_KEY, CHARACTER1);
+        int character = intent.getIntExtra(simultanea.CHARACTER_KEY, DEFAULT_CHARACTER);
         me = new Player(this, character, "Me");
         Log.d(TAG, "Playing as character " + character);
 
@@ -86,9 +84,9 @@ public class PLAY extends AppCompatActivity {
         }
 
         // Add fake players for now
-        otherPlayers.add(new Player(this, CHARACTER3, "Jack"));
-        otherPlayers.add(new Player(this, CHARACTER4, "Eve"));
-        otherPlayers.add(new Player(this, CHARACTER1, "Pandora"));
+        otherPlayers.add(new Player(this, random.nextInt(CharacterPool.charactersList.length), "Jack"));
+        otherPlayers.add(new Player(this, random.nextInt(CharacterPool.charactersList.length), "Eve"));
+        otherPlayers.add(new Player(this, random.nextInt(CharacterPool.charactersList.length), "Pandora"));
 
         // Remove the fake content we put in the initial layout (for designing)
         otherPlayersLayout.removeAllViews();
@@ -144,7 +142,6 @@ public class PLAY extends AppCompatActivity {
 
         // Let's get started!
         quizPool = new QuizPool(this);
-        random = new Random();
         newQuestion();
     }
 

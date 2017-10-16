@@ -13,11 +13,8 @@ public class simultanea extends AppCompatActivity {
 
     static final int PICK_CHARACTER_REQUEST = 0;
     public static final String CHARACTER_KEY = "character";
-    public static final int CHARACTER1 = 1;
-    public static final int CHARACTER2 = 2;
-    public static final int CHARACTER3 = 3;
-    public static final int CHARACTER4 = 4;
-    private int currentCharacter = CHARACTER1;
+    public static final int DEFAULT_CHARACTER = 0;
+    private int currentCharacter = DEFAULT_CHARACTER;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,7 +41,7 @@ public class simultanea extends AppCompatActivity {
     public void onClickCharacters(View view) {
         Intent intent;
         Log.d(TAG, "Launching character selection activity");
-        intent = new Intent(this, characters.class);
+        intent = new Intent(this, CharacterSelectionActivity.class);
         startActivityForResult(intent, PICK_CHARACTER_REQUEST);
     }
 
