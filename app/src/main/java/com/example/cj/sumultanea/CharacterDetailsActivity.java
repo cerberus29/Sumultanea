@@ -12,14 +12,24 @@ import static com.example.cj.sumultanea.simultanea.DEFAULT_CHARACTER;
 
 public class CharacterDetailsActivity extends AppCompatActivity {
     private int mCharacterNum = DEFAULT_CHARACTER;
+    private static final String TAG_STATS = "stats";
+    private static final String TAG_LORE = "lore";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_character_details);
+        // Setup the tabs
         TabHost tabHost = findViewById(R.id.tabHostStatsLore);
         tabHost.setup();
-
+        TabHost.TabSpec spec = tabHost.newTabSpec(TAG_STATS);
+        spec.setContent(R.id.tabStats);
+        spec.setIndicator("Stats");
+        tabHost.addTab(spec);
+        spec = tabHost.newTabSpec(TAG_LORE);
+        spec.setContent(R.id.tabLore);
+        spec.setIndicator("Lore");
+        tabHost.addTab(spec);
 
         // Retrieve the character selection sent by the main activity as part of the "intent"
         Intent intent = getIntent();
