@@ -84,4 +84,7 @@
     <string name="game_not_over">You have %1$d lives left.</string>
     <string name="game_won">You are the last player standing, YOU WIN!!!</string>
 
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
 </resources>
