@@ -46,6 +46,7 @@ public class PLAY extends AppCompatActivity {
     // This is to keep track of which heart is currently animated (only one at a time), so we can stop the animation later
     private ImageView fadingLifeImg = null;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -73,7 +74,7 @@ public class PLAY extends AppCompatActivity {
         // Display our lives
         // Remove the fake content we put in the initial layout (for designing)
         localPlayerLivesLayout.removeAllViews();
-        for (int i=0; i<me.lives; i++) {
+        for (int i = 0; i < me.lives; i++) {
             ImageView lifeImg = new ImageView(this);
             lifeImg.setImageResource(R.drawable.heart);
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(30, 30);
@@ -91,7 +92,7 @@ public class PLAY extends AppCompatActivity {
         // Remove the fake content we put in the initial layout (for designing)
         otherPlayersLayout.removeAllViews();
         // Fill other players row
-        for (Player player: otherPlayers) {
+        for (Player player : otherPlayers) {
             // Container for player + 3 lives
             LinearLayout playerAndLivesContainer = new LinearLayout(this);
             // Vertical, because we want the player on top of the lives
@@ -119,7 +120,7 @@ public class PLAY extends AppCompatActivity {
             // Center horizontally based on parent container width
             livesContainer.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
             livesContainer.setGravity(Gravity.CENTER);
-            for (int i=0; i<player.lives; i++) {
+            for (int i = 0; i < player.lives; i++) {
                 ImageView lifeImg = new ImageView(this);
                 lifeImg.setImageResource(R.drawable.heart);
                 lifeImg.setLayoutParams(new LinearLayout.LayoutParams(20, 20));
@@ -169,7 +170,7 @@ public class PLAY extends AppCompatActivity {
         // We clear-out the old buttons, and create new ones for the current question
         answersLayout.removeAllViews();
         int count = 0;
-        for (QuizPool.Answer answer: currentQuestion.answers) {
+        for (QuizPool.Answer answer : currentQuestion.answers) {
             Button button = new Button(this);
             button.setText(answer.text);
             button.setTag(R.id.id_answer, answer);
@@ -210,12 +211,12 @@ public class PLAY extends AppCompatActivity {
     };
 
     // Go through a sub-tree of views and call setEnabled on every leaf (views)
-    private void recursiveSetEnabled(boolean enable, ViewGroup vg){
+    private void recursiveSetEnabled(boolean enable, ViewGroup vg) {
         for (int i = 0; i < vg.getChildCount(); i++) {
             View child = vg.getChildAt(i);
             child.setEnabled(enable);
             if (child instanceof ViewGroup) {
-                recursiveSetEnabled(enable, (ViewGroup)child);
+                recursiveSetEnabled(enable, (ViewGroup) child);
             }
         }
     }
@@ -288,7 +289,7 @@ public class PLAY extends AppCompatActivity {
             victim_container = (LinearLayout) v.getParent();
             LinearLayout livesContainer = (LinearLayout) victim_container.getChildAt(1);
             // The image we want is at the end of the row
-            fadingLifeImg = (ImageView) livesContainer.getChildAt(livesContainer.getChildCount()-1);
+            fadingLifeImg = (ImageView) livesContainer.getChildAt(livesContainer.getChildCount() - 1);
             fadingLifeImg.startAnimation(fadeOutAnimation);
             String msg_without_player = getResources().getString(R.string.do_attack);
             String msg_with_player = String.format(msg_without_player, victim.name);

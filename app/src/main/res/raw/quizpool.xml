@@ -43,11 +43,11 @@
 		<answer>Disappear</answer>
 	</entry>
 	<entry type="mc">
-		<question>Which of these is the proper order for adjectives?</question>
-		<answer correct="true">Determiners, Quantity, Observations, Size, Shape, Age, Color, Origin, Material, Qualifier</answer>
-		<answer>Qualifier, Material, Origin, Color, Age, Shape, Size, Observations, Quantity, Determiners</answer>
-		<answer>Determiners, Quantity, Observations, Size, Shape, Qualifier, Material, Origin, Color, Age</answer>
-		<answer>Shape, Size, Observations, Quantity, Determiners, Age, Color, Origin, Material, Qualifier</answer>
+		<question>Which word form is not correct?</question>
+		<answer correct="true">Clothing</answer>
+		<answer>Clotheful</answer>
+		<answer>Clothed</answer>
+		<answer>Clothe</answer>
 	</entry>
 	<entry type="mc">
 		<question>(Tide - Edit), (Slap - Pals), (Peek - Keep), (Dab - Bad) are examples of what?</question>
