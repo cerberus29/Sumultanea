@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animation-list xmlns:android="http://schemas.android.com/apk/res/android"
+                android:id="@+id/bluepanda_death" android:oneshot="true">
+    <item android:drawable="@drawable/bluepanda_death1" android:duration="200" />
+    <item android:drawable="@drawable/bluepanda_death2" android:duration="200" />
+    <item android:drawable="@drawable/bluepanda_death3" android:duration="200" />
+    <item android:drawable="@drawable/bluepanda_death4" android:duration="200" />
+    <item android:drawable="@drawable/bluepanda_death5" android:duration="200" />
+    <item android:drawable="@drawable/bluepanda_death6" android:duration="200" />
+    <item android:drawable="@drawable/bluepanda_death7" android:duration="400" />
+</animation-list>

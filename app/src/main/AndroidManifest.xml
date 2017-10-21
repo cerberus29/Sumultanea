@@ -20,7 +20,6 @@
         <activity android:name=".SETTINGS" />
         <activity android:name=".PROFILE" />
         <activity android:name=".CharacterDetailsActivity" />
-        <activity android:name=".ZoomActivity"></activity>
     </application>
 
 </manifest>

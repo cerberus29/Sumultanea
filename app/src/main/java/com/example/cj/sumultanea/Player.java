@@ -7,10 +7,11 @@ public class Player {
     public AnimationDrawable animation;
     public int lives;
     public String name;
+    public Character mCharacter;
     public Player(Context context, int character, String name) {
         this.name = name;
         lives = 3;
-        int resId = CharacterPool.charactersList[character].getImageResource();
-        animation = (AnimationDrawable) context.getDrawable(resId);
+        mCharacter = CharacterPool.charactersList[character];
+        animation = (AnimationDrawable) context.getDrawable(mCharacter.getImageResource());
     }
 }
