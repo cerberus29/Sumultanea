@@ -261,21 +261,9 @@ public class PLAY extends AppCompatActivity {
 
     /**
      * Animation code from https://developer.android.com/training/animation/zoom.html
-     * Modifications:
-     * - Do not allow cancelling the animation (removed mCurrentAnimator).
-     * - Make the animation time longer (removed mShortAnimationDuration).
-     * - Add a character animation (hurt or die) between the zoom-in and zoom-out.
-     * - Launch the next animation immediately (replace OnClickListener with postDelayed).
+     * Simplified and modified to play a character animation (hurt or die) between the zoom-in and zoom-out.
      */
-    // Hold a reference to the current animator,
-    // so that it can be canceled mid-way.
-    private Animator mCurrentAnimator;
-
-    // The system "short" animation time duration, in milliseconds. This
-    // duration is ideal for subtle animations or animations that occur
-    // very frequently.
     private int mShortAnimationDuration = 500;
-
     // Some variables we need to keep for the zoom-out animation
     private View mCurrentAnimThumbView;
     private Player mCurrentAnimPlayer;
@@ -283,14 +271,7 @@ public class PLAY extends AppCompatActivity {
     private Rect startBounds;
     private float startScaleFinal;
     private Runnable mDoThisAfterAnimation;
-
     private void zoomImageFromThumb(final View thumbView, final Player player, Runnable doThisAfterAnimation) {
-        // If there's an animation in progress, cancel it
-        // immediately and proceed with this one.
-        if (mCurrentAnimator != null) {
-            mCurrentAnimator.cancel();
-        }
-
         // Save a few things for the zoom-out animation
         mCurrentAnimThumbView = thumbView;
         mCurrentAnimPlayer = player;
@@ -306,18 +287,12 @@ public class PLAY extends AppCompatActivity {
         // This step involves lots of math. Yay, math.
         startBounds = new Rect();
         final Rect finalBounds = new Rect();
-        final Point globalOffset = new Point();
 
         // The start bounds are the global visible rectangle of the thumbnail,
         // and the final bounds are the global visible rectangle of the container
-        // view. Also set the container view's offset as the origin for the
-        // bounds, since that's the origin for the positioning animation
-        // properties (X, Y).
+        // view.
         thumbView.getGlobalVisibleRect(startBounds);
-        findViewById(R.id.questionLayout)
-                .getGlobalVisibleRect(finalBounds, globalOffset);
-        //startBounds.offset(-globalOffset.x, -globalOffset.y);
-        //finalBounds.offset(-globalOffset.x, -globalOffset.y);
+        findViewById(R.id.questionLayout).getGlobalVisibleRect(finalBounds);
 
         // Adjust the start bounds to be the same aspect ratio as the final
         // bounds using the "center crop" technique. This prevents undesirable
@@ -369,7 +344,6 @@ public class PLAY extends AppCompatActivity {
         set.addListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationEnd(Animator animation) {
-                mCurrentAnimator = null;
                 // Start the hurt/death animation now
                 int resId;
                 if (player.lives > 0) {
@@ -388,14 +362,8 @@ public class PLAY extends AppCompatActivity {
                     handler.postDelayed(zoomImageBackToThumb, 2000);
                 }
             }
-
-            @Override
-            public void onAnimationCancel(Animator animation) {
-                mCurrentAnimator = null;
-            }
         });
         set.start();
-        mCurrentAnimator = set;
 
         // Upon finishing the hurt/death animation, it should zoom back down
         // to the original bounds and show the thumbnail instead of
@@ -406,10 +374,6 @@ public class PLAY extends AppCompatActivity {
     private Runnable zoomImageBackToThumb = new Runnable() {
         @Override
         public void run() {
-            if (mCurrentAnimator != null) {
-                mCurrentAnimator.cancel();
-            }
-
             // Stop the hurt or death animation
             AnimationDrawable anim = (AnimationDrawable) expandedImageView.getDrawable();
             anim.stop();
@@ -438,19 +402,10 @@ public class PLAY extends AppCompatActivity {
                         mCurrentAnimThumbView.setAlpha(1f);
                     }
                     expandedImageView.setVisibility(View.GONE);
-                    mCurrentAnimator = null;
                     handler.post(mDoThisAfterAnimation);
-                }
-
-                @Override
-                public void onAnimationCancel(Animator animation) {
-                    mCurrentAnimThumbView.setAlpha(1f);
-                    expandedImageView.setVisibility(View.GONE);
-                    mCurrentAnimator = null;
                 }
             });
             set.start();
-            mCurrentAnimator = set;
         }
     };
 
