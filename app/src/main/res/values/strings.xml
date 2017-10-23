@@ -2,7 +2,7 @@
     <string name="app_name">Simultanea</string>
     <string name="answer_correct">Correct! Please choose a player to attack.</string>
     <string name="answer_incorrect">Incorrect! Please wait for other players to decide your fate.</string>
-    <string name="fate_attacked">You got attacked!</string>
+    <string name="fate_attacked">You got attacked by %1$s!</string>
     <string name="fate_spared">You got spared, this time…</string>
     <string name="do_attack">Attacking player %1$s!</string>
     <string name="attack_killed">You killed player %1$s</string>

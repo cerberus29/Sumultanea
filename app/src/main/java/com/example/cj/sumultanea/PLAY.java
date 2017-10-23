@@ -1,12 +1,8 @@
 package com.example.cj.sumultanea;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
-import android.animation.AnimatorSet;
-import android.animation.ObjectAnimator;
 import android.content.Intent;
 import android.graphics.Color;
-import android.graphics.Point;
+import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.drawable.AnimationDrawable;
 import android.media.MediaPlayer;
@@ -18,6 +14,7 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewPropertyAnimator;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.DecelerateInterpolator;
@@ -42,10 +39,11 @@ public class PLAY extends AppCompatActivity {
     TextView questionText;
     private LinearLayout answersLayout;
     private Player me;
-    private ImageView localPlayerThumb;
     private List<Player> otherPlayers = new ArrayList<>();
     private LinearLayout otherPlayersLayout;
     private LinearLayout localPlayerLivesLayout;
+    private ImageView localPlayerThumb;
+    private ImageView localPlayerAnimation, otherPlayerAnimation;
     private Handler handler = new Handler();
     private MediaPlayer ring;
     private final static int MESSAGE_DURATION_MS = 1500;
@@ -75,6 +73,8 @@ public class PLAY extends AppCompatActivity {
         answersLayout = findViewById(R.id.answersLayout);
         otherPlayersLayout = findViewById(R.id.otherPlayersLayout);
         localPlayerLivesLayout = findViewById(R.id.localPlayerLivesLayout);
+        localPlayerAnimation = findViewById(R.id.localPlayerAnimation);
+        otherPlayerAnimation = findViewById(R.id.otherPlayerAnimation);
 
         // Set our character image
         localPlayerThumb = findViewById(R.id.imageViewLocalPlayer);
@@ -242,16 +242,28 @@ public class PLAY extends AppCompatActivity {
     private Runnable waitForYourFate = new Runnable() {
         @Override
         public void run() {
+            /* Todo: make the game more intelligent by calculating:
+               the likelihood for each player to answer correctly (player skills)
+               the likelihood for each player to attack me
+               For now: just get attacked 50% of the time by a random player.
+             */
             if (random.nextInt(2) == 0) {
-                questionText.setText(R.string.fate_attacked);
+                int attacker_index = random.nextInt(otherPlayers.size());
+                Player attacker = otherPlayers.get(attacker_index);
+                String msg_without_name = getResources().getString(R.string.fate_attacked);
+                String msg_with_name = String.format(msg_without_name, attacker.name);
+                questionText.setText(msg_with_name);
+
                 me.lives--;
 
                 // Animate the heart
                 fadingLifeImg = (ImageView) localPlayerLivesLayout.getChildAt(me.lives);
                 fadingLifeImg.startAnimation(fadeOutAnimation);
 
-                // Animate the character (hurt or death)
-                zoomImageFromThumb(localPlayerThumb, me, doAnnounceDamage);
+                // Animate the characters (hurt or death)
+                LinearLayout attackerContainer = (LinearLayout) otherPlayersLayout.getChildAt(attacker_index);
+                ImageButton attackerView = (ImageButton) attackerContainer.getChildAt(0);
+                zoomImageFromThumb(attackerView, attacker, doAnnounceDamage, false);
             } else {
                 questionText.setText(R.string.fate_spared);
                 handler.postDelayed(doNextQuestion, MESSAGE_DURATION_MS);
@@ -261,151 +273,232 @@ public class PLAY extends AppCompatActivity {
 
     /**
      * Animation code from https://developer.android.com/training/animation/zoom.html
-     * Simplified and modified to play a character animation (hurt or die) between the zoom-in and zoom-out.
+     * Simplified and modified to play battle animations (attack, hurt or die).
+     * Sequence:
+     * - Both characters zoom-in from their small thumbnail to the animation area.
+     * - Animate attack and hurt/die.
+     * - Both characters zoom-out back to their original position.
      */
-    private int mShortAnimationDuration = 500;
     // Some variables we need to keep for the zoom-out animation
-    private View mCurrentAnimThumbView;
-    private Player mCurrentAnimPlayer;
-    private ImageView expandedImageView;
-    private Rect startBounds;
-    private float startScaleFinal;
+    private ImageView mOtherPlayerThumb;
+    private Player mOtherPlayer;
     private Runnable mDoThisAfterAnimation;
-    private void zoomImageFromThumb(final View thumbView, final Player player, Runnable doThisAfterAnimation) {
-        // Save a few things for the zoom-out animation
-        mCurrentAnimThumbView = thumbView;
-        mCurrentAnimPlayer = player;
-        mDoThisAfterAnimation = doThisAfterAnimation;
-        int imageResId = player.mCharacter.getImageResource();
+    private boolean mWinBattle;
+    // Translation and scale factors
+    private PointF localPlayerStartScale = new PointF();
+    private PointF otherPlayerStartScale = new PointF();
+    private PointF localPlayerStartTranslation = new PointF();
+    private PointF otherPlayerStartTranslation = new PointF();
+    private int mShortAnimationDuration = 500;
 
-        // Load the high-resolution "zoomed-in" image.
-        expandedImageView = (ImageView) findViewById(
-                R.id.expanded_image);
-        expandedImageView.setImageResource(imageResId);
+    /**
+     * Zoom-in animation:
+     * - hide the small thumbnail
+     * - calculate the offset and scaling required to shrink the big animation image exactly over the thumbnail
+     * - animate from the thumbnail position to the full-size animation position.
+     *
+     * @param otherPlayerThumb: small image of the other player.
+     * @param otherPlayer: other player data.
+     * @param doThisAfterAnimation: what to run when the animation is finished.
+     * @param winBattle: true if I (local player) am the victor of the battle.
+     */
+    private void zoomImageFromThumb(ImageView otherPlayerThumb, Player otherPlayer, Runnable doThisAfterAnimation, boolean winBattle) {
+        // Save the values, because we will need them in the zoom-out animation
+        mOtherPlayerThumb = otherPlayerThumb;
+        mOtherPlayer = otherPlayer;
+        mDoThisAfterAnimation = doThisAfterAnimation;
+        mWinBattle = winBattle;
+
+        // Load the big zoom-in images (same as the small thumbnail images for now).
+        otherPlayerAnimation.setImageDrawable(otherPlayerThumb.getDrawable());
+        localPlayerAnimation.setImageDrawable(localPlayerThumb.getDrawable());
 
         // Calculate the starting and ending bounds for the zoomed-in image.
-        // This step involves lots of math. Yay, math.
-        startBounds = new Rect();
-        final Rect finalBounds = new Rect();
+        Rect startBounds = new Rect();
+        Rect finalBounds = new Rect();
 
         // The start bounds are the global visible rectangle of the thumbnail,
-        // and the final bounds are the global visible rectangle of the container
-        // view.
-        thumbView.getGlobalVisibleRect(startBounds);
-        findViewById(R.id.questionLayout).getGlobalVisibleRect(finalBounds);
-
-        // Adjust the start bounds to be the same aspect ratio as the final
-        // bounds using the "center crop" technique. This prevents undesirable
-        // stretching during the animation. Also calculate the start scaling
-        // factor (the end scaling factor is always 1.0).
-        final float startScale;
-        if ((float) finalBounds.width() / finalBounds.height()
-                > (float) startBounds.width() / startBounds.height()) {
-            // Extend start bounds horizontally
-            startScale = (float) startBounds.height() / finalBounds.height();
-            float startWidth = startScale * finalBounds.width();
-            float deltaWidth = (startWidth - startBounds.width()) / 2;
-            startBounds.left -= deltaWidth;
-            startBounds.right += deltaWidth;
-        } else {
-            // Extend start bounds vertically
-            startScale = (float) startBounds.width() / finalBounds.width();
-            float startHeight = startScale * finalBounds.height();
-            float deltaHeight = (startHeight - startBounds.height()) / 2;
-            startBounds.top -= deltaHeight;
-            startBounds.bottom += deltaHeight;
-        }
+        // and the final bounds are the global visible rectangle of the zoomed-in image.
+        mOtherPlayerThumb.getGlobalVisibleRect(startBounds);
+        otherPlayerAnimation.getGlobalVisibleRect(finalBounds);
+        // Calculate the transformations needed to make the big animation fit exactly on top of the thumbnail:
+        otherPlayerStartTranslation.x = startBounds.left - finalBounds.left;
+        otherPlayerStartTranslation.y = startBounds.top - finalBounds.top;
+        otherPlayerStartScale.x = (float) startBounds.width() / finalBounds.width();
+        otherPlayerStartScale.y = (float) startBounds.height() / finalBounds.height();
 
         // Hide the thumbnail and show the zoomed-in view. When the animation
         // begins, it will position the zoomed-in view in the place of the
-        // thumbnail.
-        thumbView.setAlpha(0f);
-        expandedImageView.setVisibility(View.VISIBLE);
+        // thumbnails.
+        mOtherPlayerThumb.setAlpha(0f);
+
+        // Apply translation and scale to cover the thumbnail
+        otherPlayerAnimation.setTranslationX(otherPlayerStartTranslation.x);
+        otherPlayerAnimation.setTranslationY(otherPlayerStartTranslation.y);
+        otherPlayerAnimation.setScaleX(otherPlayerStartScale.x);
+        otherPlayerAnimation.setScaleY(otherPlayerStartScale.y);
+        otherPlayerAnimation.setVisibility(View.VISIBLE);
 
         // Set the pivot point for SCALE_X and SCALE_Y transformations
         // to the top-left corner of the zoomed-in view (the default
         // is the center of the view).
-        expandedImageView.setPivotX(0f);
-        expandedImageView.setPivotY(0f);
+        otherPlayerAnimation.setPivotX(0f);
+        otherPlayerAnimation.setPivotY(0f);
 
         // Construct and run the parallel animation of the four translation and
-        // scale properties (X, Y, SCALE_X, and SCALE_Y).
-        AnimatorSet set = new AnimatorSet();
-        set
-                .play(ObjectAnimator.ofFloat(expandedImageView, View.X,
-                        startBounds.left, finalBounds.left))
-                .with(ObjectAnimator.ofFloat(expandedImageView, View.Y,
-                        startBounds.top, finalBounds.top))
-                .with(ObjectAnimator.ofFloat(expandedImageView, View.SCALE_X,
-                        startScale, 1f)).with(ObjectAnimator.ofFloat(expandedImageView,
-                View.SCALE_Y, startScale, 1f));
-        set.setDuration(mShortAnimationDuration);
-        set.setInterpolator(new DecelerateInterpolator());
-        set.addListener(new AnimatorListenerAdapter() {
-            @Override
-            public void onAnimationEnd(Animator animation) {
-                // Start the hurt/death animation now
-                int resId;
-                if (player.lives > 0) {
-                    resId = player.mCharacter.getImageResourceHurt();
-                } else {
-                    resId = player.mCharacter.getImageResourceDeath();
-                }
-                expandedImageView.setImageResource(resId);
-                AnimationDrawable anim = (AnimationDrawable) expandedImageView.getDrawable();
-                anim.start();
-                // Let the hurt/death animation run for a certain time before zooming out
-                if (player.lives > 0) {
-                    handler.postDelayed(zoomImageBackToThumb, 1000);
-                } else {
-                    // Death animation takes a bit longer
-                    handler.postDelayed(zoomImageBackToThumb, 2000);
-                }
-            }
-        });
-        set.start();
+        // scale properties.
+        ViewPropertyAnimator anim = otherPlayerAnimation.animate();
+        anim.translationX(0f);
+        anim.translationY(0f);
+        anim.scaleX(1f);
+        anim.scaleY(1f);
+        anim.setDuration(mShortAnimationDuration);
+        anim.setInterpolator(new DecelerateInterpolator());
+        anim.start();
 
-        // Upon finishing the hurt/death animation, it should zoom back down
-        // to the original bounds and show the thumbnail instead of
-        // the expanded image.
-        startScaleFinal = startScale;
+        // Do the same thing for the local player animation
+        localPlayerThumb.getGlobalVisibleRect(startBounds);
+        localPlayerAnimation.getGlobalVisibleRect(finalBounds);
+        localPlayerStartTranslation.x = startBounds.left - finalBounds.left;
+        localPlayerStartTranslation.y = startBounds.top - finalBounds.top;
+        localPlayerStartScale.x = (float) startBounds.width() / finalBounds.width();
+        localPlayerStartScale.y = (float) startBounds.height() / finalBounds.height();
+        localPlayerThumb.setAlpha(0f);
+        localPlayerAnimation.setTranslationX(localPlayerStartTranslation.x);
+        localPlayerAnimation.setTranslationY(localPlayerStartTranslation.y);
+        localPlayerAnimation.setScaleX(localPlayerStartScale.x);
+        localPlayerAnimation.setScaleY(localPlayerStartScale.y);
+        localPlayerAnimation.setVisibility(View.VISIBLE);
+        localPlayerAnimation.setPivotX(0f);
+        localPlayerAnimation.setPivotY(0f);
+        anim = localPlayerAnimation.animate();
+        anim.translationX(0f);
+        anim.translationY(0f);
+        anim.scaleX(1f);
+        anim.scaleY(1f);
+        anim.setDuration(mShortAnimationDuration);
+        anim.setInterpolator(new DecelerateInterpolator());
+        // Schedule the next step at the end of the zoom-in animation
+        anim.withEndAction(doCharacterAnimation);
+        anim.start();
     }
 
+    /**
+     * Battle animations
+     * The attacker and the victim images are now fully zoomed-in.
+     * Time to play the attack and the hurt/death animations.
+     */
+    private Runnable doCharacterAnimation = new Runnable() {
+        @Override
+        public void run() {
+            // Start the battle animations now
+            Player victim, victor;
+            ImageView victimView, victorView;
+            if (mWinBattle) {
+                victim = mOtherPlayer;
+                victimView = otherPlayerAnimation;
+                victor = me;
+                victorView = localPlayerAnimation;
+            } else {
+                victim = me;
+                victor = mOtherPlayer;
+                victimView = localPlayerAnimation;
+                victorView = otherPlayerAnimation;
+            }
+            // Victim: select between hurt and death animations
+            int resId;
+            if (victim.lives > 0) {
+                resId = victim.mCharacter.getImageResourceHurt();
+            } else {
+                resId = victim.mCharacter.getImageResourceDeath();
+            }
+            victimView.setImageResource(resId);
+            AnimationDrawable anim = (AnimationDrawable) victimView.getDrawable();
+            anim.start();
+            // Victor: select attack animation
+            victorView.setImageResource(victor.mCharacter.getImageResourceAttack());
+            anim = (AnimationDrawable) victorView.getDrawable();
+            anim.start();
+            // Let the hurt/death animation run for a certain time before zooming out
+            if (victim.lives > 0) {
+                handler.postDelayed(zoomImageBackToThumb, 1000);
+            } else {
+                // Death animation takes a bit longer
+                handler.postDelayed(zoomImageBackToThumb, 2000);
+            }
+        }
+    };
+
+    /**
+     * Zoom-out animation:
+     * - Shrink the animation images back to the thumbnail position
+     */
     private Runnable zoomImageBackToThumb = new Runnable() {
         @Override
         public void run() {
             // Stop the hurt or death animation
-            AnimationDrawable anim = (AnimationDrawable) expandedImageView.getDrawable();
-            anim.stop();
+            AnimationDrawable animationDrawable = (AnimationDrawable) otherPlayerAnimation.getDrawable();
+            animationDrawable.stop();
+            // Restore the character image before zooming-out, unless the player is dead
+            if (mOtherPlayer.lives != 0) {
+                otherPlayerAnimation.setImageDrawable(mOtherPlayerThumb.getDrawable());
+            }
 
             // Animate the four positioning/sizing properties in parallel,
             // back to their original values.
-            AnimatorSet set = new AnimatorSet();
-            set.play(ObjectAnimator
-                    .ofFloat(expandedImageView, View.X, startBounds.left))
-                    .with(ObjectAnimator
-                            .ofFloat(expandedImageView,
-                                    View.Y,startBounds.top))
-                    .with(ObjectAnimator
-                            .ofFloat(expandedImageView,
-                                    View.SCALE_X, startScaleFinal))
-                    .with(ObjectAnimator
-                            .ofFloat(expandedImageView,
-                                    View.SCALE_Y, startScaleFinal));
-            set.setDuration(mShortAnimationDuration);
-            set.setInterpolator(new DecelerateInterpolator());
-            set.addListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    // Only re-enable thumb view if the player is not dead
-                    if (mCurrentAnimPlayer.lives != 0) {
-                        mCurrentAnimThumbView.setAlpha(1f);
-                    }
-                    expandedImageView.setVisibility(View.GONE);
-                    handler.post(mDoThisAfterAnimation);
-                }
-            });
-            set.start();
+            ViewPropertyAnimator anim = otherPlayerAnimation.animate();
+            anim.translationX(otherPlayerStartTranslation.x);
+            anim.translationY(otherPlayerStartTranslation.y);
+            anim.scaleX(otherPlayerStartScale.x);
+            anim.scaleY(otherPlayerStartScale.y);
+            anim.setDuration(mShortAnimationDuration);
+            anim.setInterpolator(new DecelerateInterpolator());
+            anim.start();
+
+            // Same for local player
+            animationDrawable = (AnimationDrawable) localPlayerAnimation.getDrawable();
+            animationDrawable.stop();
+            if (me.lives != 0) {
+                localPlayerAnimation.setImageDrawable(localPlayerThumb.getDrawable());
+            }
+            anim = localPlayerAnimation.animate();
+            anim.translationX(localPlayerStartTranslation.x);
+            anim.translationY(localPlayerStartTranslation.y);
+            anim.scaleX(localPlayerStartScale.x);
+            anim.scaleY(localPlayerStartScale.y);
+            anim.setDuration(mShortAnimationDuration);
+            anim.setInterpolator(new DecelerateInterpolator());
+            // Next step...
+            anim.withEndAction(doFinishAnimation);
+            anim.start();
+        }
+    };
+
+    /**
+     * After the zoom-out animation, we clean-up and re-enable the thumbnail.
+     */
+    private Runnable doFinishAnimation = new Runnable() {
+        @Override
+        public void run() {
+            // Only re-enable thumb view if the player is not dead
+            if (mOtherPlayer.lives != 0) {
+                mOtherPlayerThumb.setAlpha(1f);
+            }
+            otherPlayerAnimation.setVisibility(View.INVISIBLE);
+            otherPlayerAnimation.setTranslationX(0f);
+            otherPlayerAnimation.setTranslationY(0f);
+            otherPlayerAnimation.setScaleX(1f);
+            otherPlayerAnimation.setScaleY(1f);
+            if (me.lives != 0) {
+                localPlayerThumb.setAlpha(1f);
+            }
+            localPlayerAnimation.setVisibility(View.INVISIBLE);
+            localPlayerAnimation.setTranslationX(0f);
+            localPlayerAnimation.setTranslationY(0f);
+            localPlayerAnimation.setScaleX(1f);
+            localPlayerAnimation.setScaleY(1f);
+            // Next step...
+            handler.post(mDoThisAfterAnimation);
         }
     };
 
@@ -459,8 +552,8 @@ public class PLAY extends AppCompatActivity {
             String msg_without_player = getResources().getString(R.string.do_attack);
             String msg_with_player = String.format(msg_without_player, victim.name);
             questionText.setText(msg_with_player);
-            View victim_image = victim_container.getChildAt(0);
-            zoomImageFromThumb(victim_image, victim, doAttackOtherPlayer);
+            ImageView victim_image = (ImageView) victim_container.getChildAt(0);
+            zoomImageFromThumb(victim_image, victim, doAttackOtherPlayer, true);
         }
     };
 

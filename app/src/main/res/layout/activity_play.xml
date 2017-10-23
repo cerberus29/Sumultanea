@@ -16,7 +16,6 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toTopOf="@+id/questionLayout"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toLeftOf="@+id/otherPlayersLayout"
         android:layout_marginLeft="16dp"
         android:layout_marginRight="16dp"
         android:layout_marginStart="16dp"
@@ -24,8 +23,8 @@
 
         <ImageView
             android:id="@+id/imageViewLocalPlayer"
-            android:layout_width="100dp"
-            android:layout_height="100dp"
+            android:layout_width="75dp"
+            android:layout_height="75dp"
             android:adjustViewBounds="true"
             app:srcCompat="@drawable/pump" />
 
@@ -49,23 +48,187 @@
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/otherPlayersLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:orientation="vertical"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="16dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/answersLayout"
+        app:layout_constraintLeft_toRightOf="@+id/questionLayout"
+        app:layout_constraintRight_toRightOf="parent">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <ImageButton
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:adjustViewBounds="true"
+                android:scaleType="centerCrop"
+                app:srcCompat="@drawable/bluepanda" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="8dp"
+                    android:layout_height="8dp"
+                    android:adjustViewBounds="true"
+                    app:srcCompat="@drawable/heart" />
+
+                <ImageView
+                    android:layout_width="8dp"
+                    android:layout_height="8dp"
+                    android:adjustViewBounds="true"
+                    app:srcCompat="@drawable/heart" />
+
+                <ImageView
+                    android:layout_width="8dp"
+                    android:layout_height="8dp"
+                    android:adjustViewBounds="true"
+                    app:srcCompat="@drawable/heart" />
+            </LinearLayout>
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <ImageButton
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:adjustViewBounds="true"
+                android:scaleType="centerCrop"
+                app:srcCompat="@drawable/duel" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="8dp"
+                    android:layout_height="8dp"
+                    android:adjustViewBounds="true"
+                    app:srcCompat="@drawable/heart" />
+
+                <ImageView
+                    android:layout_width="8dp"
+                    android:layout_height="8dp"
+                    android:adjustViewBounds="true"
+                    app:srcCompat="@drawable/heart" />
+
+                <ImageView
+                    android:layout_width="8dp"
+                    android:layout_height="8dp"
+                    android:adjustViewBounds="true"
+                    app:srcCompat="@drawable/heart" />
+            </LinearLayout>
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <ImageButton
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:adjustViewBounds="true"
+                android:scaleType="centerCrop"
+                app:srcCompat="@drawable/pump" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="8dp"
+                    android:layout_height="8dp"
+                    android:adjustViewBounds="true"
+                    app:srcCompat="@drawable/heart" />
+
+                <ImageView
+                    android:layout_width="8dp"
+                    android:layout_height="8dp"
+                    android:adjustViewBounds="true"
+                    app:srcCompat="@drawable/heart" />
+
+                <ImageView
+                    android:layout_width="8dp"
+                    android:layout_height="8dp"
+                    android:adjustViewBounds="true"
+                    app:srcCompat="@drawable/heart" />
+            </LinearLayout>
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <ImageButton
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:adjustViewBounds="true"
+                android:scaleType="centerCrop"
+                app:srcCompat="@drawable/war" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="8dp"
+                    android:layout_height="8dp"
+                    android:adjustViewBounds="true"
+                    app:srcCompat="@drawable/heart" />
+
+                <ImageView
+                    android:layout_width="8dp"
+                    android:layout_height="8dp"
+                    android:adjustViewBounds="true"
+                    app:srcCompat="@drawable/heart" />
+
+                <ImageView
+                    android:layout_width="8dp"
+                    android:layout_height="8dp"
+                    android:adjustViewBounds="true"
+                    app:srcCompat="@drawable/heart" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
         android:id="@+id/questionLayout"
         android:orientation="horizontal"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         app:layout_constraintTop_toBottomOf="@+id/localPlayerLayout"
-        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/answersLayout"
+        app:layout_constraintRight_toLeftOf="@+id/otherPlayersLayout"
         app:layout_constraintLeft_toLeftOf="parent"
         android:layout_marginLeft="16dp"
         android:layout_marginRight="16dp"
         android:layout_marginTop="16dp"
+        android:layout_marginBottom="8dp"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp">
 
         <TextView
             android:id="@+id/textView4"
-            android:layout_width="0dp"
-            android:layout_height="200dp"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
             android:layout_weight="1"
             android:gravity="center"
             android:text="TextView"
@@ -115,71 +278,32 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center" />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/otherPlayersLayout"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginTop="3dp"
-        android:layout_marginEnd="16dp"
-        app:layout_constraintTop_toTopOf="@+id/localPlayerLayout"
-        app:layout_constraintLeft_toRightOf="@+id/localPlayerLayout"
-        app:layout_constraintRight_toRightOf="parent">
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <ImageButton
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                android:adjustViewBounds="true"
-                android:scaleType="centerCrop"
-                app:srcCompat="@drawable/duel" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:layout_width="8dp"
-                    android:layout_height="8dp"
-                    android:adjustViewBounds="true"
-                    app:srcCompat="@drawable/heart" />
-
-                <ImageView
-                    android:layout_width="8dp"
-                    android:layout_height="8dp"
-                    android:adjustViewBounds="true"
-                    app:srcCompat="@drawable/heart" />
-
-                <ImageView
-                    android:layout_width="8dp"
-                    android:layout_height="8dp"
-                    android:adjustViewBounds="true"
-                    app:srcCompat="@drawable/heart" />
-            </LinearLayout>
-        </LinearLayout>
     </LinearLayout>
 
     <ImageView
-        android:id="@+id/expanded_image"
-        android:visibility="invisible"
+        android:id="@+id/localPlayerAnimation"
         android:layout_width="0dp"
-        android:layout_height="200dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginLeft="16dp"
-        android:layout_marginRight="16dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/localPlayerLayout" />
+        android:layout_height="wrap_content"
+        android:adjustViewBounds="true"
+        android:visibility="invisible"
+        tools:visibility="visible"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintLeft_toRightOf="@+id/localPlayerLayout"
+        app:layout_constraintRight_toLeftOf="@+id/otherPlayerAnimation"
+        app:srcCompat="@drawable/pump"
+        android:layout_marginTop="32dp" />
+
+    <ImageView
+        android:id="@+id/otherPlayerAnimation"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:adjustViewBounds="true"
+        android:visibility="invisible"
+        tools:visibility="visible"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintLeft_toRightOf="@+id/localPlayerAnimation"
+        app:layout_constraintRight_toLeftOf="@+id/otherPlayersLayout"
+        app:srcCompat="@drawable/war"
+        android:layout_marginTop="32dp" />
 
 </android.support.constraint.ConstraintLayout>
