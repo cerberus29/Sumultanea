@@ -9,4 +9,12 @@
     <string name="game_over">You have no more lives, GAME OVER!</string>
     <string name="game_not_over">You have %1$d lives left.</string>
     <string name="game_won">You are the last player standing, YOU WIN!!!</string>
+    <string name="bluepanda_name">Happy Panda</string>
+    <string name="duel_name">Sword Guy</string>
+    <string name="pump_name">Pumpkin Man</string>
+    <string name="war_name">Little Warrior</string>
+    <!-- TODO: Add 1 string per character describing their lore. Use \n to force a newline
+    For example:
+    <string name="war_lore">Little Warrior bla bla bla\n\nLore stuff\n\nBla bla bla</string>
+     -->
 </resources>

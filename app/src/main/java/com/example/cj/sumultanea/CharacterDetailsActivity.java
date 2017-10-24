@@ -39,11 +39,9 @@ public class CharacterDetailsActivity extends AppCompatActivity {
         ImageView imageViewCharacter = findViewById(R.id.imageViewCharacter);
         imageViewCharacter.setImageResource(character.getImageResource());
         TextView textViewCharacterName = findViewById(R.id.textViewCharacterName);
-        textViewCharacterName.setText(character.getName());
-        TextView textViewStats = findViewById(R.id.textViewStats);
-        textViewStats.setText("TODO: stats about character " + character.getName() + ".");
+        textViewCharacterName.setText(character.getStringResourceName());
         TextView textViewLore = findViewById(R.id.textViewLore);
-        textViewLore.setText("TODO: describe character " + character.getName() + "'s lore.");
+        // todo: textViewLore.setText( .... see character name above for example );
     }
 
     public void onClickPick(View v) {

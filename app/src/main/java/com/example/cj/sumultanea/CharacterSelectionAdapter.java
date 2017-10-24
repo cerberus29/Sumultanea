@@ -50,7 +50,7 @@ class CharacterSelectionAdapter extends ArrayAdapter<Character> {
         AnimationDrawable anim = (AnimationDrawable) imageView.getDrawable();
         anim.start();
         TextView textView = view.findViewById(R.id.textViewCharacterName);
-        textView.setText(character.getName());
+        textView.setText(character.getStringResourceName());
         view.setLayoutParams(new GridView.LayoutParams(GridView.AUTO_FIT, 500));
         return view;
     }
