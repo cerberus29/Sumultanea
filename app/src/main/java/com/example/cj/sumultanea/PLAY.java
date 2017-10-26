@@ -113,12 +113,12 @@ public class PLAY extends AppCompatActivity {
             // Attach the player data to the button
             btn.setTag(R.id.id_player, player);
             // Prepare the button style
-            btn.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            btn.setScaleType(ImageView.ScaleType.FIT_START);
             btn.setImageDrawable(player.animation);
             player.animation.start();
             btn.setAdjustViewBounds(true);
             btn.setEnabled(false);
-            btn.setLayoutParams(new LinearLayout.LayoutParams(170, 170));
+            btn.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
             btn.setOnClickListener(onClickOtherPlayer);
             // Add the player button to the vertical container (on top of the lives)
             playerAndLivesContainer.addView(btn);
