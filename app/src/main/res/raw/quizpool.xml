@@ -44,8 +44,8 @@
 	</entry>
 	<entry type="mc">
 		<question>Which word form is not correct?</question>
-		<answer correct="true">Clothing</answer>
-		<answer>Clotheful</answer>
+		<answer correct="true">Clotheful</answer>
+		<answer>Clothing</answer>
 		<answer>Clothed</answer>
 		<answer>Clothe</answer>
 	</entry>

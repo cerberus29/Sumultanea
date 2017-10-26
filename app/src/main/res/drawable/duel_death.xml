@@ -1,11 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <animation-list xmlns:android="http://schemas.android.com/apk/res/android"
                 android:id="@+id/duel_death" android:oneshot="true">
-    <item android:drawable="@drawable/duel_death1" android:duration="200" />
-    <item android:drawable="@drawable/duel_death2" android:duration="200" />
-    <item android:drawable="@drawable/duel_death3" android:duration="200" />
-    <item android:drawable="@drawable/duel_death4" android:duration="200" />
-    <item android:drawable="@drawable/duel_death5" android:duration="200" />
-    <item android:drawable="@drawable/duel_death6" android:duration="200" />
-    <item android:drawable="@drawable/duel_death7" android:duration="400" />
+    <item android:drawable="@drawable/duel_death1" android:duration="100" />
+    <item android:drawable="@drawable/duel_death2" android:duration="100" />
+    <item android:drawable="@drawable/duel_death3" android:duration="100" />
+    <item android:drawable="@drawable/duel_death4" android:duration="100" />
+    <item android:drawable="@drawable/duel_death5" android:duration="100" />
+    <item android:drawable="@drawable/duel_death6" android:duration="100" />
+    <item android:drawable="@drawable/duel_death7" android:duration="100" />
+    <item android:drawable="@drawable/duel_death8" android:duration="100" />
+    <item android:drawable="@drawable/duel_death9" android:duration="100" />
+    <item android:drawable="@drawable/duel_death10" android:duration="400" />
+
 </animation-list>

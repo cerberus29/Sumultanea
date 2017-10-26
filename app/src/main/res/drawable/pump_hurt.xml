@@ -3,4 +3,8 @@
                 android:id="@+id/pump_hurt" android:oneshot="false">
     <item android:drawable="@drawable/pump_hurt1" android:duration="100" />
     <item android:drawable="@drawable/pump_hurt2" android:duration="100" />
+    <item android:drawable="@drawable/pump_hurt3" android:duration="100" />
+    <item android:drawable="@drawable/pump_hurt4" android:duration="100" />
+    <item android:drawable="@drawable/pump_hurt5" android:duration="100" />
+    <item android:drawable="@drawable/pump_hurt6" android:duration="100" />
 </animation-list>

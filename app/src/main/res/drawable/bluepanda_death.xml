@@ -1,11 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <animation-list xmlns:android="http://schemas.android.com/apk/res/android"
                 android:id="@+id/bluepanda_death" android:oneshot="true">
-    <item android:drawable="@drawable/bluepanda_death1" android:duration="200" />
-    <item android:drawable="@drawable/bluepanda_death2" android:duration="200" />
-    <item android:drawable="@drawable/bluepanda_death3" android:duration="200" />
-    <item android:drawable="@drawable/bluepanda_death4" android:duration="200" />
-    <item android:drawable="@drawable/bluepanda_death5" android:duration="200" />
-    <item android:drawable="@drawable/bluepanda_death6" android:duration="200" />
-    <item android:drawable="@drawable/bluepanda_death7" android:duration="400" />
+    <item android:drawable="@drawable/bluepanda_death1" android:duration="100" />
+    <item android:drawable="@drawable/bluepanda_death2" android:duration="100" />
+    <item android:drawable="@drawable/bluepanda_death3" android:duration="100" />
+    <item android:drawable="@drawable/bluepanda_death4" android:duration="100" />
+    <item android:drawable="@drawable/bluepanda_death5" android:duration="100" />
+    <item android:drawable="@drawable/bluepanda_death6" android:duration="100" />
+    <item android:drawable="@drawable/bluepanda_death7" android:duration="100" />
+    <item android:drawable="@drawable/bluepanda_death8" android:duration="100" />
+    <item android:drawable="@drawable/bluepanda_death9" android:duration="100" />
+    <item android:drawable="@drawable/bluepanda_death10" android:duration="100" />
+    <item android:drawable="@drawable/bluepanda_death11" android:duration="100" />
+    <item android:drawable="@drawable/bluepanda_death12" android:duration="100" />
+    <item android:drawable="@drawable/bluepanda_death13" android:duration="100" />
+    <item android:drawable="@drawable/bluepanda_death14" android:duration="100" />
+    <item android:drawable="@drawable/bluepanda_death15" android:duration="100" />
+    <item android:drawable="@drawable/bluepanda_death16" android:duration="100" />
+    <item android:drawable="@drawable/bluepanda_death17" android:duration="100" />
+    <item android:drawable="@drawable/bluepanda_death18" android:duration="100" />
+    <item android:drawable="@drawable/bluepanda_death19" android:duration="100" />
+    <item android:drawable="@drawable/bluepanda_death20" android:duration="100" />
+    <item android:drawable="@drawable/bluepanda_death21" android:duration="400" />
+
 </animation-list>

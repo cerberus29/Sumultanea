@@ -3,4 +3,11 @@
                 android:id="@+id/war_attack" android:oneshot="false">
     <item android:drawable="@drawable/war_attack1" android:duration="100" />
     <item android:drawable="@drawable/war_attack2" android:duration="100" />
+    <item android:drawable="@drawable/war_attack3" android:duration="100" />
+    <item android:drawable="@drawable/war_attack4" android:duration="100" />
+    <item android:drawable="@drawable/war_attack5" android:duration="100" />
+    <item android:drawable="@drawable/war_attack6" android:duration="100" />
+    <item android:drawable="@drawable/war_attack7" android:duration="100" />
+    <item android:drawable="@drawable/war_attack8" android:duration="100" />
+
 </animation-list>

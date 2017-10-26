@@ -3,4 +3,10 @@
                 android:id="@+id/war_hurt" android:oneshot="false">
     <item android:drawable="@drawable/war_hurt1" android:duration="100" />
     <item android:drawable="@drawable/war_hurt2" android:duration="100" />
+    <item android:drawable="@drawable/war_hurt3" android:duration="100" />
+    <item android:drawable="@drawable/war_hurt4" android:duration="100" />
+    <item android:drawable="@drawable/war_hurt5" android:duration="100" />
+    <item android:drawable="@drawable/war_hurt6" android:duration="100" />
+    <item android:drawable="@drawable/war_hurt7" android:duration="100" />
+
 </animation-list>

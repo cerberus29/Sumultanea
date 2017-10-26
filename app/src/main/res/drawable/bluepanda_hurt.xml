@@ -3,4 +3,8 @@
                 android:id="@+id/bluepanda_hurt" android:oneshot="false">
     <item android:drawable="@drawable/bluepanda_hurt1" android:duration="100" />
     <item android:drawable="@drawable/bluepanda_hurt2" android:duration="100" />
+    <item android:drawable="@drawable/bluepanda_hurt3" android:duration="100" />
+    <item android:drawable="@drawable/bluepanda_hurt4" android:duration="100" />
+    <item android:drawable="@drawable/bluepanda_hurt5" android:duration="100" />
+    <item android:drawable="@drawable/bluepanda_hurt6" android:duration="100" />
 </animation-list>
