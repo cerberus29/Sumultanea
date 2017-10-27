@@ -7,23 +7,25 @@ public class Character {
     private final int mImageResourceDeath;
     private final int mImageResourceAttack;
     private final int mStringResourceLore;
-
-    // TODO: add one more int for the lore string resource (like I did for the name)
+    private final int mHealth, mRecovery, mAttack, mDefense;
 
     Character(int strResName,
               int imgRes,
               int imgResHurt,
               int imgResDeath,
-              int imgResAttack /*, <-- don't forget the comma
+              int imgResAttack,
               int strResLore,
-               todo: add one more parameter to receive the lore string resource */) {
+              int health, int recovery, int attack, int defense) {
         mStringResourceName = strResName;
         mImageResource = imgRes;
         mImageResourceHurt = imgResHurt;
         mImageResourceDeath = imgResDeath;
         mImageResourceAttack = imgResAttack;
-        mStringResourceLore = getStringResourceLore();
-        // todo: save the lore resource parameter into the variable
+        mStringResourceLore = strResLore;
+        mHealth = health;
+        mRecovery = recovery;
+        mAttack = attack;
+        mDefense = defense;
     }
 
     int getStringResourceName() {
@@ -41,16 +43,19 @@ public class Character {
     int getImageResourceAttack() {
         return mImageResourceAttack;
     }
-    int getStringResourceLore (){return mStringResourceLore;}
-    // todo: add getStringResourceLore ...
-
-
-
-    public int getmStringResourceName() {
-        return mStringResourceName;
+    int getStringResourceLore() {
+        return mStringResourceLore;
     }
-
-    ;
+    int getHealth() {
+        return mHealth;
     }
-
+    int getRecovery() {
+        return mRecovery;
+    }
+    int getAttack() {
+        return mAttack;
+    }
+    int getDefense() {
+        return mDefense;
+    }
 }

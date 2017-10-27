@@ -40,11 +40,13 @@ public class CharacterDetailsActivity extends AppCompatActivity {
         imageViewCharacter.setImageResource(character.getImageResource());
         TextView textViewCharacterName = findViewById(R.id.textViewCharacterName);
         textViewCharacterName.setText(character.getStringResourceName());
+        TextView textViewStats = findViewById(R.id.textViewStats);
+        String msg_stats = String.format(getString(R.string.msg_stats),
+                character.getHealth(), character.getRecovery(),
+                character.getAttack(), character.getDefense());
+        textViewStats.setText(msg_stats);
         TextView textViewLore = findViewById(R.id.textViewLore);
-        // todo: textViewLore.setText( .... see character name above for example );
-        textViewLore.setText(character.getStringResourceName());
-
-
+        textViewLore.setText(character.getStringResourceLore());
     }
 
     public void onClickPick(View v) {
