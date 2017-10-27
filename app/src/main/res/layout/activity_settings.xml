@@ -5,8 +5,8 @@
     android:id="@+id/activity_settings"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.example.cj.sumultanea.SETTINGS"
-    android:background="@drawable/cs">
+    android:background="@drawable/skyisland"
+    tools:context="com.example.cj.sumultanea.SETTINGS">
 
     <Switch
         android:id="@+id/multiplayerwitch"
