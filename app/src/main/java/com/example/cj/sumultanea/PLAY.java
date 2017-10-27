@@ -135,7 +135,7 @@ public class PLAY extends AppCompatActivity {
             // Horizontal, because we want the hearts lined-up side-by-side
             livesContainer.setOrientation(LinearLayout.HORIZONTAL);
             // Center horizontally based on parent container width
-            livesContainer.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+            livesContainer.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 20));
             livesContainer.setGravity(Gravity.CENTER);
             for (int i = 0; i < player.lives; i++) {
                 ImageView lifeImg = new ImageView(this);
@@ -242,16 +242,14 @@ public class PLAY extends AppCompatActivity {
         recursiveSetEnabled(false, answersLayout);
     }
 
+    /**
+     * Change the status of the other players buttons (for choosing who to attack)
+     *
+     * We never enable buttons for dead players, that's just wrong.
+     *
+     * @param enabled: if true, the user can press the button to attack
+     */
     private void enablePlayersButtons(boolean enabled) {
-        recursiveSetEnabled(enabled, otherPlayersLayout);
-        /* todo: if you want the dead players to stay on screen, you can't enable their button
-         anymore, because attacking a dead player is not only inhuman, it's also going to
-         break the game with negative number of lives, etc.
-
-         Instead of recursively enabling (or disabling) buttons blindly, you'll have to loop
-         and check for each players if it can be enabled.
-         For example:
-
         for (int i = 0; i < otherPlayers.size(); i++) {
             LinearLayout container = (LinearLayout) otherPlayersLayout.getChildAt(i);
             ImageButton button = (ImageButton) container.getChildAt(0);
@@ -262,7 +260,6 @@ public class PLAY extends AppCompatActivity {
                 button.setEnabled(enabled);
             }
         }
-        */
     }
 
     private Runnable waitForYourFate = new Runnable() {
@@ -465,10 +462,6 @@ public class PLAY extends AppCompatActivity {
             // Stop the hurt or death animation
             AnimationDrawable animationDrawable = (AnimationDrawable) otherPlayerAnimation.getDrawable();
             animationDrawable.stop();
-            // Restore the character image before zooming-out, unless the player is dead
-            if (mOtherPlayer.lives != 0) {
-                otherPlayerAnimation.setImageDrawable(mOtherPlayerThumb.getDrawable());
-            }
 
             // Animate the four positioning/sizing properties in parallel,
             // back to their original values.
@@ -506,15 +499,8 @@ public class PLAY extends AppCompatActivity {
     private Runnable doFinishAnimation = new Runnable() {
         @Override
         public void run() {
-            // Only re-enable thumb view if the player is not dead
-            if (mOtherPlayer.lives != 0) {
-                mOtherPlayerThumb.setAlpha(1f);
-            }
-            /* todo: if you want the dead players to stay on screen, you would remove the
-            if (mOtherPlayer.lives != 0) above and do the setAlpha unconditionally.
-            However since the thumbnail image looks very-much alive, you might want to
-            call setImageDrawable() to set the image to the last frame of the death animation,
-            which is still in otherPlayerAnimation. Just call getDrawable() to get it... */
+            // Only re-enable thumb view
+            mOtherPlayerThumb.setAlpha(1f);
             otherPlayerAnimation.setVisibility(View.INVISIBLE);
             otherPlayerAnimation.setTranslationX(0f);
             otherPlayerAnimation.setTranslationY(0f);
@@ -610,14 +596,9 @@ public class PLAY extends AppCompatActivity {
     private Runnable doRemovePlayer = new Runnable() {
         @Override
         public void run() {
-            // Remove the victim's entire layout, including lives and icon containers
-            otherPlayersLayout.removeView(victim_container);
-            otherPlayers.remove(victim);
-            /* todo: if you want the dead players to stay on screen, do not remove the
-            victim from the layout and the list of other players (2 lines above)
-
-            Also, instead of checking if the list of other players is empty (below),
-            you would have to loop over the list and check if everyone is dead
+            // Disable the victim
+            recursiveSetEnabled(false, victim_container);
+            // Check if we won
             boolean everybodyDead = true;
             for (Player player : otherPlayers) {
                 if (player.lives != 0) {
@@ -625,9 +606,7 @@ public class PLAY extends AppCompatActivity {
                     break; // no need to continue, we have at least 1 opponent alive.
                 }
             }
-            if (everybodyDead) { ...
-             */
-            if (otherPlayers.isEmpty()) {
+            if (everybodyDead) {
                 questionText.setText(R.string.game_won);
                 handler.postDelayed(doFinishGame, LONG_MESSAGE_DURATION_MS);
             } else {
