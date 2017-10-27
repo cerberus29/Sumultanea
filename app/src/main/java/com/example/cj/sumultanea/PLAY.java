@@ -271,8 +271,13 @@ public class PLAY extends AppCompatActivity {
                For now: just get attacked 50% of the time by a random player.
              */
             if (random.nextInt(2) == 0) {
-                int attacker_index = random.nextInt(otherPlayers.size());
-                Player attacker = otherPlayers.get(attacker_index);
+                int attacker_index;
+                Player attacker;
+                // Prevent a zombie attack! Pick random attacker until we find one that is alive
+                do {
+                    attacker_index = random.nextInt(otherPlayers.size());
+                    attacker = otherPlayers.get(attacker_index);
+                } while (attacker.lives == 0);
                 String msg_without_name = getString(R.string.fate_attacked);
                 String msg_with_name = String.format(msg_without_name, attacker.name);
                 questionText.setText(msg_with_name);
