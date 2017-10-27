@@ -42,6 +42,9 @@ public class CharacterDetailsActivity extends AppCompatActivity {
         textViewCharacterName.setText(character.getStringResourceName());
         TextView textViewLore = findViewById(R.id.textViewLore);
         // todo: textViewLore.setText( .... see character name above for example );
+        textViewLore.setText(character.getStringResourceName());
+
+
     }
 
     public void onClickPick(View v) {

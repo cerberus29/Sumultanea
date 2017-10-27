@@ -9,12 +9,40 @@
     <string name="game_over">You have no more lives, GAME OVER!</string>
     <string name="game_not_over">You have %1$d lives left.</string>
     <string name="game_won">You are the last player standing, YOU WIN!!!</string>
-    <string name="bluepanda_name">Happy Panda</string>
-    <string name="duel_name">Sword Guy</string>
-    <string name="pump_name">Pumpkin Man</string>
-    <string name="war_name">Little Warrior</string>
+    <string name="bluepanda_name">Pandora</string>
+    <string name="duel_name">Duelist</string>
+    <string name="pump_name">Jack</string>
+    <string name="war_name">Warrior</string>
     <!-- TODO: Add 1 string per character describing their lore. Use \n to force a newline
     For example:
     <string name="war_lore">Little Warrior bla bla bla\n\nLore stuff\n\nBla bla bla</string>
      -->
+    <string name="WarriorStat1">Health: 100</string>
+    <string name="WarriorStat2">Attack: 10</string>
+    <string name="WarriorStat3">Defense: 13</string>
+    <string name="WarriorStat4">Recovery: 5</string>
+    <string name="Warrior_Lore">Brutus - The Abyssal Barbarian. \n An entity from a land unknown. Found unconcious by a group of barbarian warriors. \n Having lost his memories, he does not remember where he came from, what he really is, and what his name was. Accepted as one of their own, the barbarians gave him the name Brutus.\n He wields a large shield and a battle axe.</string>
+
+
+    <string name="DuelistStat1">Health: 80</string>
+    <string name="DuelistStat2">Attack: 20</string>
+    <string name="DuelistStat3">Defense: 7</string>
+    <string name="DuelistStat4">Recovery: 10</string>
+    <string name="Duelist_Lore">Eve - The Silver Assassin\n A Midland commoner.With no family around, she grew up by herself on the streets. \nHer family died in the war between the Land Above and Down Under. \nShe is skilled in acrobatics and wields two silver-plated daggers.</string>
+
+    <string name="PandaStat1">Health: 100</string>
+    <string name="PandaStat2">Attack: 15</string>
+    <string name="PandaStat3">Defense: 10</string>
+    <string name="PandaStat4">Recovery: 5</string>
+    <string name="PandaLore1">Pandgeal - The Divine Panda Mage</string>
+    <string name="Panda_Lore">One of the several Panda Mages descended from the Land Above to bring peace to Midland. \nAfter witnessing the death of his fellow Panda Mages, he decided to stay in Midland to seek vengeance - to hunt for the mysterious Red Panda that betrayed them. \n He wields a staff made of bamboo, imbued with divine energy. </string>
+
+
+    <string name="ScarecrowStat1">Health: 70</string>
+    <string name="ScarecrowStat2">Attack: 15</string>
+    <string name="ScarecrowStat3">Defense: 10</string>
+    <string name="ScarecrowStat4">Recovery: 10</string>
+    <string name="ScarecrowLore1">Jack - The Malevolent Pumpkin Sorceror</string>
+    <string name="Scarecrow_Lore">The spirit belonged to an evil sorceror that was taken to Down Under after comitting regicide. \n Jack utilizes the dark magic he had studied before his fall.</string>
+
 </resources>

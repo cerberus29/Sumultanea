@@ -21,19 +21,19 @@
     <item android:drawable="@drawable/pump_death18" android:duration="100" />
     <item android:drawable="@drawable/pump_death19" android:duration="100" />
     <item android:drawable="@drawable/pump_death20" android:duration="100" />
-    <item android:drawable="@drawable/pump_death21" android:duration="100" />
-    <item android:drawable="@drawable/pump_death22" android:duration="100" />
-    <item android:drawable="@drawable/pump_death23" android:duration="100" />
-    <item android:drawable="@drawable/pump_death24" android:duration="100" />
-    <item android:drawable="@drawable/pump_death25" android:duration="100" />
-    <item android:drawable="@drawable/pump_death26" android:duration="100" />
-    <item android:drawable="@drawable/pump_death27" android:duration="100" />
-    <item android:drawable="@drawable/pump_death28" android:duration="100" />
-    <item android:drawable="@drawable/pump_death29" android:duration="100" />
-    <item android:drawable="@drawable/pump_death30" android:duration="100" />
-    <item android:drawable="@drawable/pump_death31" android:duration="100" />
-    <item android:drawable="@drawable/pump_death32" android:duration="100" />
-    <item android:drawable="@drawable/pump_death33" android:duration="100" />
+    <item android:drawable="@drawable/pump_death21" android:duration="200" />
+    <item android:drawable="@drawable/pump_death22" android:duration="200" />
+    <item android:drawable="@drawable/pump_death23" android:duration="200" />
+    <item android:drawable="@drawable/pump_death24" android:duration="200" />
+    <item android:drawable="@drawable/pump_death25" android:duration="200" />
+    <item android:drawable="@drawable/pump_death26" android:duration="200" />
+    <item android:drawable="@drawable/pump_death27" android:duration="200" />
+    <item android:drawable="@drawable/pump_death28" android:duration="200" />
+    <item android:drawable="@drawable/pump_death29" android:duration="200" />
+    <item android:drawable="@drawable/pump_death30" android:duration="200" />
+    <item android:drawable="@drawable/pump_death31" android:duration="200" />
+    <item android:drawable="@drawable/pump_death32" android:duration="200" />
+    <item android:drawable="@drawable/pump_death33" android:duration="200" />
     <item android:drawable="@drawable/pump_death34" android:duration="400" />
 
 </animation-list>
