@@ -17,7 +17,7 @@
         </activity>
         <activity android:name=".CharacterSelectionActivity" />
         <activity android:name=".PLAY" />
-        <activity android:name=".SETTINGS" />
+        <activity android:name=".SettingsActivity" />
         <activity android:name=".PROFILE" />
         <activity android:name=".CharacterDetailsActivity" />
     </application>

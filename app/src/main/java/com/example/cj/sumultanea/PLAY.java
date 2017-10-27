@@ -94,10 +94,17 @@ public class PLAY extends AppCompatActivity {
             localPlayerLivesLayout.addView(lifeImg);
         }
 
-        // Add fake players for now
-        otherPlayers.add(new Player(this, random.nextInt(CharacterPool.charactersList.length), "Jack"));
-        otherPlayers.add(new Player(this, random.nextInt(CharacterPool.charactersList.length), "Eve"));
-        otherPlayers.add(new Player(this, random.nextInt(CharacterPool.charactersList.length), "Pandora"));
+        if (SettingsActivity.isMultiPlayerMode()) {
+            // TODO: get other players from the network
+        } else {
+            // Single-player mode: play against all characters (except ours)
+            for (int i = 0; i < CharacterPool.charactersList.length; i++) {
+                if (i != character) {
+                    String name = getString(CharacterPool.charactersList[i].getStringResourceName());
+                    otherPlayers.add(new Player(this, i, name));
+                }
+            }
+        }
 
         // Remove the fake content we put in the initial layout (for designing)
         otherPlayersLayout.removeAllViews();
@@ -269,7 +276,7 @@ public class PLAY extends AppCompatActivity {
             if (random.nextInt(2) == 0) {
                 int attacker_index = random.nextInt(otherPlayers.size());
                 Player attacker = otherPlayers.get(attacker_index);
-                String msg_without_name = getResources().getString(R.string.fate_attacked);
+                String msg_without_name = getString(R.string.fate_attacked);
                 String msg_with_name = String.format(msg_without_name, attacker.name);
                 questionText.setText(msg_with_name);
 
@@ -536,7 +543,7 @@ public class PLAY extends AppCompatActivity {
                 questionText.setText(R.string.game_over);
                 handler.postDelayed(doFinishGame, MESSAGE_DURATION_MS);
             } else {
-                String msg_without_lives = getResources().getString(R.string.game_not_over);
+                String msg_without_lives = getString(R.string.game_not_over);
                 String msg_with_lives = String.format(msg_without_lives, me.lives);
                 questionText.setText(msg_with_lives);
                 handler.postDelayed(doNextQuestion, MESSAGE_DURATION_MS);
@@ -573,7 +580,7 @@ public class PLAY extends AppCompatActivity {
             // The image we want is at the end of the row
             fadingLifeImg = (ImageView) livesContainer.getChildAt(livesContainer.getChildCount() - 1);
             fadingLifeImg.startAnimation(fadeOutAnimation);
-            String msg_without_player = getResources().getString(R.string.do_attack);
+            String msg_without_player = getString(R.string.do_attack);
             String msg_with_player = String.format(msg_without_player, victim.name);
             questionText.setText(msg_with_player);
             ImageView victim_image = (ImageView) victim_container.getChildAt(0);
@@ -590,7 +597,7 @@ public class PLAY extends AppCompatActivity {
             LinearLayout livesContainer = (LinearLayout) fadingLifeImg.getParent();
             livesContainer.removeView(fadingLifeImg);
             if (victim.lives == 0) {
-                String msg_without_victim = getResources().getString(R.string.attack_killed);
+                String msg_without_victim = getString(R.string.attack_killed);
                 String msg_with_victim = String.format(msg_without_victim, victim.name);
                 questionText.setText(msg_with_victim);
                 handler.postDelayed(doRemovePlayer, MESSAGE_DURATION_MS);

@@ -52,7 +52,7 @@ public class simultanea extends AppCompatActivity {
     }
 
     public void onClickSettings(View view) {
-        Intent intent = new Intent(this, SETTINGS.class);
+        Intent intent = new Intent(this, SettingsActivity.class);
         startActivity(intent);
     }
 

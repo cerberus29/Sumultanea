@@ -6,16 +6,17 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/skyisland"
-    tools:context="com.example.cj.sumultanea.SETTINGS">
+    tools:context="com.example.cj.sumultanea.SettingsActivity">
 
     <Switch
-        android:id="@+id/multiplayerwitch"
+        android:id="@+id/multiPlayerModeSwitch"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginLeft="32dp"
         android:layout_marginRight="32dp"
         android:layout_marginTop="32dp"
-        android:text="Multiplayer"
+        android:background="#cc000000"
+        android:text="@string/multiplayerModeSetting"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
