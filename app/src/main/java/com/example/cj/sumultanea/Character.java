@@ -4,7 +4,8 @@ public class Character {
     private final int mStringResourceName;
     private final int mImageResource;
     private final int mImageResourceHurt;
-    private final int mImageResourceDeath;
+    private final int mDeathAnimationId;
+    private final int mDeadImageId;
     private final int mImageResourceAttack;
     private final int mStringResourceLore;
     private final int mHealth, mRecovery, mAttack, mDefense;
@@ -12,14 +13,15 @@ public class Character {
     Character(int strResName,
               int imgRes,
               int imgResHurt,
-              int imgResDeath,
+              int deathAnimationId, int deadImageId,
               int imgResAttack,
               int strResLore,
               int health, int recovery, int attack, int defense) {
         mStringResourceName = strResName;
         mImageResource = imgRes;
         mImageResourceHurt = imgResHurt;
-        mImageResourceDeath = imgResDeath;
+        mDeathAnimationId = deathAnimationId;
+        mDeadImageId = deadImageId;
         mImageResourceAttack = imgResAttack;
         mStringResourceLore = strResLore;
         mHealth = health;
@@ -37,8 +39,11 @@ public class Character {
     int getImageResourceHurt() {
         return mImageResourceHurt;
     }
-    int getImageResourceDeath() {
-        return mImageResourceDeath;
+    int getDeathAnimationId() {
+        return mDeathAnimationId;
+    }
+    int getDeadImageId() {
+        return mDeadImageId;
     }
     int getImageResourceAttack() {
         return mImageResourceAttack;

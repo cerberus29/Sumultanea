@@ -438,7 +438,7 @@ public class PLAY extends AppCompatActivity {
             if (victim.lives > 0) {
                 resId = victim.mCharacter.getImageResourceHurt();
             } else {
-                resId = victim.mCharacter.getImageResourceDeath();
+                resId = victim.mCharacter.getDeathAnimationId();
             }
             victimView.setImageResource(resId);
             AnimationDrawable anim = (AnimationDrawable) victimView.getDrawable();
@@ -467,6 +467,11 @@ public class PLAY extends AppCompatActivity {
             // Stop the hurt or death animation
             AnimationDrawable animationDrawable = (AnimationDrawable) otherPlayerAnimation.getDrawable();
             animationDrawable.stop();
+            // Zoom-out with the dead image or normal image
+            if (mOtherPlayer.lives == 0)
+                otherPlayerAnimation.setImageResource(mOtherPlayer.mCharacter.getDeadImageId());
+            else
+                otherPlayerAnimation.setImageDrawable(mOtherPlayerThumb.getDrawable());
 
             // Animate the four positioning/sizing properties in parallel,
             // back to their original values.
@@ -482,9 +487,10 @@ public class PLAY extends AppCompatActivity {
             // Same for local player
             animationDrawable = (AnimationDrawable) localPlayerAnimation.getDrawable();
             animationDrawable.stop();
-            if (me.lives != 0) {
+            if (me.lives == 0)
+                localPlayerAnimation.setImageResource(me.mCharacter.getDeadImageId());
+            else
                 localPlayerAnimation.setImageDrawable(localPlayerThumb.getDrawable());
-            }
             anim = localPlayerAnimation.animate();
             anim.translationX(localPlayerStartTranslation.x);
             anim.translationY(localPlayerStartTranslation.y);
@@ -504,16 +510,16 @@ public class PLAY extends AppCompatActivity {
     private Runnable doFinishAnimation = new Runnable() {
         @Override
         public void run() {
-            // Only re-enable thumb view
+            // Re-enable thumb view with the same image as the zoom-out animation
+            mOtherPlayerThumb.setImageDrawable(otherPlayerAnimation.getDrawable());
             mOtherPlayerThumb.setAlpha(1f);
             otherPlayerAnimation.setVisibility(View.INVISIBLE);
             otherPlayerAnimation.setTranslationX(0f);
             otherPlayerAnimation.setTranslationY(0f);
             otherPlayerAnimation.setScaleX(1f);
             otherPlayerAnimation.setScaleY(1f);
-            if (me.lives != 0) {
-                localPlayerThumb.setAlpha(1f);
-            }
+            localPlayerThumb.setImageDrawable(localPlayerAnimation.getDrawable());
+            localPlayerThumb.setAlpha(1f);
             localPlayerAnimation.setVisibility(View.INVISIBLE);
             localPlayerAnimation.setTranslationX(0f);
             localPlayerAnimation.setTranslationY(0f);
