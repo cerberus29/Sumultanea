@@ -30,7 +30,7 @@ public class simultanea extends AppCompatActivity implements MediaPlayer.OnCompl
     @Override
     protected void onResume() {
         super.onResume();
-        // Background music
+        //video <---
         mediaPlayer = MediaPlayer.create(this, R.raw.home);
         mediaPlayer.setLooping(true);
         mediaPlayer.start();
