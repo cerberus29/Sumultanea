@@ -9,7 +9,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.VideoView;
 
-public class simultanea extends AppCompatActivity {
+public class simultanea extends AppCompatActivity implements MediaPlayer.OnCompletionListener{
     public static final String TAG = "Simultanea";
     private MediaPlayer mediaPlayer;
 
@@ -42,12 +42,15 @@ public class simultanea extends AppCompatActivity {
         mediaPlayer.stop();
         mediaPlayer.release();
     }
-}
+
 
     @Override
     public void onCompletion(MediaPlayer mp) {
-        mediaPlayer.setOnCompletionListener(this, R.raw.home);
-
+        super.onPause();
+        mediaPlayer.setOnCompletionListener(this);
+        mediaPlayer = MediaPlayer.create(this, R.raw.home);
+        mediaPlayer.start();
+    }
     public void onClickCharacters(View view) {
         Intent intent;
         Log.d(TAG, "Launching character selection activity");
