@@ -63,4 +63,20 @@
 		<answer>A black, small, marble table.</answer>
 		<answer>An orange, ugly ribbon.</answer>
 	</entry>
+
+	<entry type="mc">
+		<question>What is the longest word in Science?</question>
+		<answer correct="true">pneumonoultramicroscopicsilicovolcanoconiosis</answer>
+		<answer>antidisestablishmentarianism</answer>
+		<answer>floccinaucinihilipilification</answer>
+		<answer>supercalifragilisticexpialidocious</answer>
+	</entry>
+
+	<entry type="mc">
+		<question>What is the longest word in English?</question>
+		<answer correct="true">supercalifragilisticexpialidocious</answer>
+		<answer>antidisestablishmentarianism</answer>
+		<answer>floccinaucinihilipilification</answer>
+		<answer>pneumonoultramicroscopicsilicovolcanoconiosis</answer>
+	</entry>
 </quiz>

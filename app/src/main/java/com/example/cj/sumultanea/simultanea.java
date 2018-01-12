@@ -6,6 +6,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
+import android.widget.VideoView;
 
 public class simultanea extends AppCompatActivity {
     public static final String TAG = "Simultanea";
@@ -16,10 +18,13 @@ public class simultanea extends AppCompatActivity {
     public static final int DEFAULT_CHARACTER = 0;
     private int currentCharacter = DEFAULT_CHARACTER;
 
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_simultanea);
+
     }
 
     @Override
@@ -37,6 +42,11 @@ public class simultanea extends AppCompatActivity {
         mediaPlayer.stop();
         mediaPlayer.release();
     }
+}
+
+    @Override
+    public void onCompletion(MediaPlayer mp) {
+        mediaPlayer.setOnCompletionListener(this, R.raw.home);
 
     public void onClickCharacters(View view) {
         Intent intent;

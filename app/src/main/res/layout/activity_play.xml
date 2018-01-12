@@ -238,7 +238,7 @@
             android:background="#cc000000"
             android:gravity="center"
             android:text="TextView"
-            android:textSize="24sp" />
+            android:textSize="12sp" />
 
     </LinearLayout>
 

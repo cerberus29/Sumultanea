@@ -5,13 +5,13 @@
     <item android:drawable="@drawable/pump_attack2" android:duration="100" />
     <item android:drawable="@drawable/pump_attack3" android:duration="100" />
     <item android:drawable="@drawable/pump_attack4" android:duration="100" />
-    <item android:drawable="@drawable/pump_attack5" android:duration="100" />
-    <item android:drawable="@drawable/pump_attack6" android:duration="100" />
-    <item android:drawable="@drawable/pump_attack7" android:duration="100" />
-    <item android:drawable="@drawable/pump_attack8" android:duration="100" />
-    <item android:drawable="@drawable/pump_attack9" android:duration="100" />
-    <item android:drawable="@drawable/pump_attack10" android:duration="100" />
-    <item android:drawable="@drawable/pump_attack11" android:duration="100" />
-    <item android:drawable="@drawable/pump_attack12" android:duration="100" />
+    <item android:drawable="@drawable/pump_attack5" android:duration="200" />
+    <item android:drawable="@drawable/pump_attack6" android:duration="200" />
+    <item android:drawable="@drawable/pump_attack7" android:duration="200" />
+    <item android:drawable="@drawable/pump_attack8" android:duration="200" />
+    <item android:drawable="@drawable/pump_attack9" android:duration="400" />
+    <item android:drawable="@drawable/pump_attack10" android:duration="400" />
+    <item android:drawable="@drawable/pump_attack11" android:duration="400" />
+    <item android:drawable="@drawable/pump_attack12" android:duration="400" />
 
 </animation-list>

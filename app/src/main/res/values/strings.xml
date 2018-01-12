@@ -9,7 +9,7 @@
     <string name="game_over">You have no more lives, GAME OVER!</string>
     <string name="game_not_over">You have %1$d lives left.</string>
     <string name="game_won">You are the last player standing, YOU WIN!!!</string>
-    <string name="bluepanda_name">Pandora</string>
+    <string name="bluepanda_name">Blue Panda</string>
     <string name="duel_name">Duelist</string>
     <string name="pump_name">Jack</string>
     <string name="war_name">Warrior</string>
@@ -19,4 +19,10 @@
     <string name="Panda_Lore">Pandgeal - The Divine Panda Mage\n\nOne of the several Panda Mages descended from the Land Above to bring peace to Midland.\nAfter witnessing the death of his fellow Panda Mages, he decided to stay in Midland to seek vengeance - to hunt for the mysterious Red Panda that betrayed them.\nHe wields a staff made of bamboo, imbued with divine energy.</string>
     <string name="Scarecrow_Lore">Jack - The Malevolent Pumpkin Sorcerer\n\nThe spirit belonged to an evil sorcerer that was taken to Down Under after committing regicide.\nJack utilizes the dark magic he had studied before his fall.</string>
     <string name="multiplayerModeSetting">Multiplayer Mode (coming soon!)</string>
+
+    <string name="title_activity_loading">loading</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
+
+    <string name="title_activity_intro">intro</string>
 </resources>

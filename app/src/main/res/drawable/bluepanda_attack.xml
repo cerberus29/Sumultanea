@@ -6,15 +6,15 @@
     <item android:drawable="@drawable/bluepanda_attack3" android:duration="100" />
     <item android:drawable="@drawable/bluepanda_attack4" android:duration="100" />
     <item android:drawable="@drawable/bluepanda_attack5" android:duration="100" />
-    <item android:drawable="@drawable/bluepanda_attack6" android:duration="100" />
-    <item android:drawable="@drawable/bluepanda_attack7" android:duration="100" />
-    <item android:drawable="@drawable/bluepanda_attack8" android:duration="100" />
-    <item android:drawable="@drawable/bluepanda_attack9" android:duration="100" />
-    <item android:drawable="@drawable/bluepanda_attack10" android:duration="100" />
-    <item android:drawable="@drawable/bluepanda_attack11" android:duration="100" />
-    <item android:drawable="@drawable/bluepanda_attack12" android:duration="100" />
-    <item android:drawable="@drawable/bluepanda_attack13" android:duration="100" />
-    <item android:drawable="@drawable/bluepanda_attack14" android:duration="100" />
+    <item android:drawable="@drawable/bluepanda_attack6" android:duration="200" />
+    <item android:drawable="@drawable/bluepanda_attack7" android:duration="200" />
+    <item android:drawable="@drawable/bluepanda_attack8" android:duration="200" />
+    <item android:drawable="@drawable/bluepanda_attack9" android:duration="200" />
+    <item android:drawable="@drawable/bluepanda_attack10" android:duration="200" />
+    <item android:drawable="@drawable/bluepanda_attack11" android:duration="400" />
+    <item android:drawable="@drawable/bluepanda_attack12" android:duration="400" />
+    <item android:drawable="@drawable/bluepanda_attack13" android:duration="400" />
+    <item android:drawable="@drawable/bluepanda_attack14" android:duration="400" />
     <item android:drawable="@drawable/bluepanda_attack15" android:duration="400" />
 
 </animation-list>

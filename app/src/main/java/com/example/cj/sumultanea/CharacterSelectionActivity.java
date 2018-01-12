@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.media.MediaPlayer;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.method.ScrollingMovementMethod;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.GridView;
@@ -25,6 +26,7 @@ public class CharacterSelectionActivity extends AppCompatActivity implements Ada
         mAdapter = new CharacterSelectionAdapter(this, R.layout.character_selection_example_item, CharacterPool.charactersList);
         gridview.setAdapter(mAdapter);
         gridview.setOnItemClickListener(this);
+
     }
 
     @Override

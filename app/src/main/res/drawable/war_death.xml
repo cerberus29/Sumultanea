@@ -1,11 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <animation-list xmlns:android="http://schemas.android.com/apk/res/android"
                 android:id="@+id/war_death" android:oneshot="true">
-    <item android:drawable="@drawable/war_death1" android:duration="200" />
-    <item android:drawable="@drawable/war_death2" android:duration="200" />
-    <item android:drawable="@drawable/war_death3" android:duration="200" />
-    <item android:drawable="@drawable/war_death4" android:duration="200" />
-    <item android:drawable="@drawable/war_death5" android:duration="200" />
-    <item android:drawable="@drawable/war_death6" android:duration="200" />
-    <item android:drawable="@drawable/war_death7" android:duration="400" />
+    <item android:drawable="@drawable/war_death1" android:duration="100" />
+    <item android:drawable="@drawable/war_death2" android:duration="100" />
+    <item android:drawable="@drawable/war_death3" android:duration="100" />
+    <item android:drawable="@drawable/war_death4" android:duration="100" />
+    <item android:drawable="@drawable/war_death5" android:duration="100" />
+    <item android:drawable="@drawable/war_death6" android:duration="100" />
+    <item android:drawable="@drawable/war_death7" android:duration="100" />
+    <item android:drawable="@drawable/war_death8" android:duration="100" />
+    <item android:drawable="@drawable/war_death9" android:duration="100" />
+    <item android:drawable="@drawable/war_death10" android:duration="200" />
+    <item android:drawable="@drawable/war_death11" android:duration="200" />
+    <item android:drawable="@drawable/war_death12" android:duration="200" />
+    <item android:drawable="@drawable/war_death13" android:duration="200" />
+    <item android:drawable="@drawable/war_death14" android:duration="200" />
+    <item android:drawable="@drawable/war_death15" android:duration="200" />
+    <item android:drawable="@drawable/war_death16" android:duration="200" />
+    <item android:drawable="@drawable/war_death17" android:duration="200" />
+    <item android:drawable="@drawable/war_death18" android:duration="200" />
+    <item android:drawable="@drawable/war_death19" android:duration="200" />
+    <item android:drawable="@drawable/war_death20" android:duration="200" />
+    <item android:drawable="@drawable/war_death21" android:duration="200" />
+    <item android:drawable="@drawable/war_death22" android:duration="200" />
+    <item android:drawable="@drawable/war_death23" android:duration="400" />
+    <item android:drawable="@drawable/war_death24" android:duration="400" />
+    <item android:drawable="@drawable/war_death25" android:duration="400" />
+    <item android:drawable="@drawable/war_death26" android:duration="400" />
+
+
+
 </animation-list>

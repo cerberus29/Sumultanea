@@ -3,6 +3,7 @@ package com.example.cj.sumultanea;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.method.ScrollingMovementMethod;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TabHost;
@@ -47,6 +48,8 @@ public class CharacterDetailsActivity extends AppCompatActivity {
         textViewStats.setText(msg_stats);
         TextView textViewLore = findViewById(R.id.textViewLore);
         textViewLore.setText(character.getStringResourceLore());
+        textViewLore.setMovementMethod(new ScrollingMovementMethod());
+
     }
 
     public void onClickPick(View v) {
