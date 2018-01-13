@@ -6,10 +6,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
-import android.widget.VideoView;
 
-public class simultanea extends AppCompatActivity implements MediaPlayer.OnCompletionListener{
+public class simultanea extends AppCompatActivity {
     public static final String TAG = "Simultanea";
     private MediaPlayer mediaPlayer;
 
@@ -17,40 +15,39 @@ public class simultanea extends AppCompatActivity implements MediaPlayer.OnCompl
     public static final String CHARACTER_KEY = "character";
     public static final int DEFAULT_CHARACTER = 0;
     private int currentCharacter = DEFAULT_CHARACTER;
-
+    private boolean playIntro = true;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_simultanea);
-
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        //video <---
-        mediaPlayer = MediaPlayer.create(this, R.raw.home);
-        mediaPlayer.setLooping(true);
-        mediaPlayer.start();
+        if (playIntro) {
+            playIntro = false;
+            Intent intent = new Intent(this, intro.class);
+            startActivity(intent);
+        } else if (mediaPlayer == null) {
+            mediaPlayer = MediaPlayer.create(this, R.raw.home);
+            mediaPlayer.setLooping(true);
+            mediaPlayer.start();
+        }
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        mediaPlayer.stop();
-        mediaPlayer.release();
+        if (mediaPlayer != null) {
+            mediaPlayer.stop();
+            mediaPlayer.release();
+            mediaPlayer = null;
+        }
     }
 
-
-    @Override
-    public void onCompletion(MediaPlayer mp) {
-        super.onPause();
-        mediaPlayer.setOnCompletionListener(this);
-        mediaPlayer = MediaPlayer.create(this, R.raw.home);
-        mediaPlayer.start();
-    }
     public void onClickCharacters(View view) {
         Intent intent;
         Log.d(TAG, "Launching character selection activity");
