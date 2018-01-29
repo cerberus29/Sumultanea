@@ -44,6 +44,7 @@
                 android:onClick="onClickPlay"
                 android:text="PLAY" />
 
+
             <Button
                 android:id="@+id/CHARACTERS"
                 android:layout_width="match_parent"

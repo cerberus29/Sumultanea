@@ -52,7 +52,7 @@ public class PLAY extends AppCompatActivity {
     // Animation for when a player looses a life
     private Animation fadeOutAnimation;
     // This is to keep track of which heart is currently animated (only one at a time), so we can stop the animation later
-    private ImageView fadingLifeImg = null;
+     private ImageView fadingLifeImg = null;
 
 
     @Override
