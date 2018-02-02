@@ -46,6 +46,7 @@ public class PLAY extends AppCompatActivity {
     private ImageView localPlayerAnimation, otherPlayerAnimation;
     private Handler handler = new Handler();
     private MediaPlayer ring;
+    private MediaPlayer mediaPlayer;
     private final static int MESSAGE_DURATION_MS = 1500;
     private final static int LONG_MESSAGE_DURATION_MS = 3000;
 
@@ -614,7 +615,10 @@ public class PLAY extends AppCompatActivity {
             for (Player player : otherPlayers) {
                 if (player.lives != 0) {
                     everybodyDead = false;
+                    mediaPlayer = MediaPlayer.create(PLAY.this, R.raw.fail);
+                    mediaPlayer.start();
                     break; // no need to continue, we have at least 1 opponent alive.
+
                 }
             }
             if (everybodyDead) {

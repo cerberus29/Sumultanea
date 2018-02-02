@@ -65,18 +65,93 @@
 	</entry>
 
 	<entry type="mc">
-		<question>What is the longest word in Science?</question>
+		<question>What is the longest word in English?</question>
 		<answer correct="true">pneumonoultramicroscopicsilicovolcanoconiosis</answer>
 		<answer>antidisestablishmentarianism</answer>
 		<answer>floccinaucinihilipilification</answer>
 		<answer>supercalifragilisticexpialidocious</answer>
 	</entry>
+//Math Multiple Choice
+	<entry type="mc">
+		<question>Profits in the partnership of Bart, Beth, and Brand are shared in the ratio 1:2:3.
+			If Beth's share of the profits is $300, what is Brand's share?</question>
+		<answer correct="true">$450</answer>
+		<answer>$600</answer>
+		<answer>$900</answer>
+		<answer>$150</answer>
+	</entry>
 
 	<entry type="mc">
-		<question>What is the longest word in English?</question>
-		<answer correct="true">supercalifragilisticexpialidocious</answer>
-		<answer>antidisestablishmentarianism</answer>
-		<answer>floccinaucinihilipilification</answer>
-		<answer>pneumonoultramicroscopicsilicovolcanoconiosis</answer>
+		<question>Profits in the partnership of Eva, Evelyn, and Even are shared in the ratio 1:3:5.
+			If Even's share of the profits was $500, what was their total profit?</question>
+		<answer correct="true">$900</answer>
+		<answer>$600</answer>
+		<answer>$150</answer>
+		<answer>$450</answer>
 	</entry>
+
+	<entry type="mc">
+		<question>Following the Fibonacci sequence, what number comes next? 1, 1, 2, 3, 5, 8, 13, 21, 34, __</question>
+		<answer correct="true">55</answer>
+		<answer>44</answer>
+		<answer>45</answer>
+		<answer>54</answer>
+	</entry>
+
+	<entry type="mc">
+		<question>Following the Fibonacci sequence, what number is X? 1, 1, 2, 3, 5, X, 13, 21, 34</question>
+		<answer correct="true">8</answer>
+		<answer>6</answer>
+		<answer>9</answer>
+		<answer>7</answer>
+	</entry>
+
+	<entry type="mc">
+		<question>In the Cartesian Coordinate system, the X - Coordinate is also called the:</question>
+		<answer correct="true">Abscissa</answer>
+		<answer>Ordinate</answer>
+		<answer>Coordinant</answer>
+		<answer>Coordinator</answer>
+	</entry>
+
+	<entry type="mc">
+		<question>In the Cartesian Coordinate system, the Y - Coordinate is also called the:</question>
+		<answer correct="true">Ordinate</answer>
+		<answer>Abscissa</answer>
+		<answer>Coordinator</answer>
+		<answer>Coordinant</answer>
+	</entry>
+
+	<entry type="mc">
+		<question>The proper word form of the number 444,444,444 is read as:</question>
+		<answer correct="true">four hundred and forty-four million four hundred and forty-four thousand four hundred and forty-four.</answer>
+		<answer>four hundred and forty-four and four hundred and forty-four and four hundred and forty-four.</answer>
+		<answer>four hundred fourty four million four hundred fourty four thousand four hundred fourty four.</answer>
+		<answer>four hundred and forty four millionths four hundred and forty four thousandths four hundred and forty four.</answer>
+	</entry>
+
+	<entry type="mc">
+		<question>The proper word form of the number 123,456,789 is read as:</question>
+		<answer correct="true">one hundred and twenty-three million four hundred and fifty-six thousand seven hundred and eighty-nine.</answer>
+		<answer>one hundred and twenty-three and four hundred and fifty-six and seven hundred and eighty-nine.</answer>
+		<answer>one hundred and twenty-three millionths four hundred and fifty-six thousandths seven hundred and eighty-nine.</answer>
+		<answer>one hundreds and twenty-three millions four hundreds and fifty-six thousands seven hundreds and eighty-nine.</answer>
+	</entry>
+
+	<entry type="mc">
+		<question>Which of the following is NOT a Prime Number?</question>
+		<answer correct="true">51</answer>
+		<answer>7</answer>
+		<answer>19</answer>
+		<answer>23</answer>
+	</entry>
+
+	<entry type="mc">
+		<question>Which of the following is a Prime Number?</question>
+		<answer correct="true">29</answer>
+		<answer>21</answer>
+		<answer>39</answer>
+		<answer>9</answer>
+	</entry>
+
 </quiz>
