@@ -21,6 +21,7 @@
         <activity android:name=".PROFILE" />
         <activity android:name=".CharacterDetailsActivity" />
         <activity android:name=".intro" />
+        <activity android:name=".intro2"></activity>
     </application>
 
 </manifest>

@@ -35,7 +35,7 @@
         android:padding="1dp"
         android:scrollbars="vertical"
         android:text="Character Name"
-        android:textSize="24sp"
+        android:textSize="20sp"
         android:textStyle="bold"
         app:layout_constraintBottom_toTopOf="@+id/tabHostStatsLore"
         app:layout_constraintLeft_toLeftOf="parent"
@@ -99,7 +99,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="Details about Lore"
-                        android:textSize="24sp"
+                        android:textSize="20sp"
                         android:textStyle="bold" />
                 </LinearLayout>
 
