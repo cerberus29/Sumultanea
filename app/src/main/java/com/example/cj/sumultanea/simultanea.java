@@ -16,6 +16,7 @@ public class simultanea extends AppCompatActivity {
     public static final int DEFAULT_CHARACTER = 0;
     private int currentCharacter = DEFAULT_CHARACTER;
     private boolean playIntro = true;
+    private boolean playIntro2 = true;
 
 
     @Override
@@ -27,15 +28,23 @@ public class simultanea extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+
         if (playIntro) {
             playIntro = false;
             Intent intent = new Intent(this, intro.class);
             startActivity(intent);
-        } else if (mediaPlayer == null) {
+        }
+            if (playIntro2) {
+                playIntro2 = false;
+                Intent intent = new Intent(this, intro2.class);
+                startActivity(intent);
+        }
+        else if (mediaPlayer == null) {
             mediaPlayer = MediaPlayer.create(this, R.raw.home);
             mediaPlayer.setLooping(true);
             mediaPlayer.start();
         }
+
     }
 
     @Override
