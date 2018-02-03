@@ -34,7 +34,7 @@ public class simultanea extends AppCompatActivity {
             Intent intent = new Intent(this, intro.class);
             startActivity(intent);
         }
-            if (playIntro2) {
+        else if (playIntro2) {
                 playIntro2 = false;
                 Intent intent = new Intent(this, intro2.class);
                 startActivity(intent);

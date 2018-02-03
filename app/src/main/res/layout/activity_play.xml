@@ -258,10 +258,13 @@
 
         <Button
             android:id="@+id/answer4"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:background="@drawable/button1"
+            android:backgroundTint="@drawable/button1"
             android:gravity="center"
-            android:text="Button" />
+            android:text="Button"
+            tools:background="@drawable/button1" />
 
         <Button
             android:id="@+id/answer3"
