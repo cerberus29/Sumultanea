@@ -7,23 +7,44 @@ import android.os.Bundle;
 import android.widget.VideoView;
 
 public class intro extends AppCompatActivity implements MediaPlayer.OnCompletionListener {
-    private VideoView videov;
+    private static final int videoSequence[] = {
+            R.raw.load,
+            R.raw.pyre,
+    };
+    private int videoCounter;
+    private VideoView videoView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_intro);
-        videov = findViewById(R.id.videoView);
-        String videopath = "android.resource://" + getPackageName() + "/" + R.raw.load;
-        Uri uri = Uri.parse(videopath);
-        videov.setVideoURI(uri);
-        videov.setOnCompletionListener(this);
-        videov.start();
+        videoView = findViewById(R.id.videoView);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        videoCounter = 0;
+        startNextVideo();
+    }
+
+    private void startNextVideo() {
+        int currentVideo = videoSequence[videoCounter];
+        String videoPath = "android.resource://" + getPackageName() + "/" + currentVideo;
+        Uri uri = Uri.parse(videoPath);
+        videoView.setVideoURI(uri);
+        videoView.setOnCompletionListener(this);
+        videoView.start();
     }
 
     @Override
     public void onCompletion(MediaPlayer mp) {
-        finish();
+        videoCounter++;
+        if (videoCounter < videoSequence.length) {
+            startNextVideo();
+        } else {
+            finish();
+        }
     }
 }
