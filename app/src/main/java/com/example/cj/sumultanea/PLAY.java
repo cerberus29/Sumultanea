@@ -1,12 +1,19 @@
 package com.example.cj.sumultanea;
 
+import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.drawable.AnimationDrawable;
 import android.media.MediaPlayer;
 import android.os.Handler;
+import android.support.annotation.CallSuper;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.ColorUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -24,6 +31,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +39,13 @@ import java.util.Random;
 
 import static com.example.cj.sumultanea.simultanea.DEFAULT_CHARACTER;
 import static com.example.cj.sumultanea.simultanea.TAG;
+import com.google.android.gms.nearby.Nearby;
+import com.google.android.gms.nearby.connection.AdvertisingOptions;
+import com.google.android.gms.nearby.connection.ConnectionInfo;
+import com.google.android.gms.nearby.connection.ConnectionLifecycleCallback;
+import com.google.android.gms.nearby.connection.ConnectionResolution;
+import com.google.android.gms.nearby.connection.ConnectionsClient;
+import com.google.android.gms.nearby.connection.DiscoveredEndpointInfo;
 
 
 public class PLAY extends AppCompatActivity {
@@ -48,13 +63,21 @@ public class PLAY extends AppCompatActivity {
     private MediaPlayer ring;
     private final static int MESSAGE_DURATION_MS = 1500;
     private final static int LONG_MESSAGE_DURATION_MS = 3000;
+    private static final int REQUEST_CODE_REQUIRED_PERMISSIONS = 1;
 
     // Animation for when a player looses a life
     private Animation fadeOutAnimation;
     // This is to keep track of which heart is currently animated (only one at a time), so we can stop the animation later
      private ImageView fadingLifeImg = null;
 
-
+    private static final String[] REQUIRED_PERMISSIONS =
+            new String[] {
+                    Manifest.permission.BLUETOOTH,
+                    Manifest.permission.BLUETOOTH_ADMIN,
+                    Manifest.permission.ACCESS_WIFI_STATE,
+                    Manifest.permission.CHANGE_WIFI_STATE,
+                    Manifest.permission.ACCESS_COARSE_LOCATION,
+            };
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -96,6 +119,11 @@ public class PLAY extends AppCompatActivity {
 
         if (SettingsActivity.isMultiPlayerMode()) {
             // TODO: get other players from the network
+            if (!hasPermissions(this, REQUIRED_PERMISSIONS))
+            {
+                ActivityCompat.requestPermissions(this,REQUIRED_PERMISSIONS, REQUEST_CODE_REQUIRED_PERMISSIONS);
+            }
+
         } else {
             // Single-player mode: play against all characters (except ours)
             for (int i = 0; i < CharacterPool.charactersList.length; i++) {
@@ -178,6 +206,35 @@ public class PLAY extends AppCompatActivity {
         // Background music
         ring.stop();
         ring.release();
+    }
+    private static boolean hasPermissions(Context context, String... permissions) {
+        for (String permission : permissions) {
+            if (ContextCompat.checkSelfPermission(context, permission)
+                    != PackageManager.PERMISSION_GRANTED) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @CallSuper
+    @Override
+    public void onRequestPermissionsResult(
+            int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode != REQUEST_CODE_REQUIRED_PERMISSIONS) {
+            return;
+        }
+
+        for (int grantResult : grantResults) {
+            if (grantResult == PackageManager.PERMISSION_DENIED) {
+                Toast.makeText(this, R.string.error_missing_permissions, Toast.LENGTH_LONG).show();
+                finish();
+                return;
+            }
+        }
+        recreate();
     }
 
     private void newQuestion() {

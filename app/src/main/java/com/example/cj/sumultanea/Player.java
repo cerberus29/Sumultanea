@@ -2,6 +2,7 @@ package com.example.cj.sumultanea;
 
 import android.content.Context;
 import android.graphics.drawable.AnimationDrawable;
+import android.support.v4.content.ContextCompat;
 
 public class Player {
     public AnimationDrawable animation;
@@ -12,6 +13,6 @@ public class Player {
         this.name = name;
         lives = 3;
         mCharacter = CharacterPool.charactersList[character];
-        animation = (AnimationDrawable) context.getDrawable(mCharacter.getImageResource());
+        animation = (AnimationDrawable) ContextCompat.getDrawable(context,mCharacter.getImageResource());
     }
 }
