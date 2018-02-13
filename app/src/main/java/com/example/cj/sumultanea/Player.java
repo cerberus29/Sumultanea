@@ -9,6 +9,7 @@ public class Player {
     public int lives;
     public String name;
     public Character mCharacter;
+    public String endpointId;
     public Player(Context context, int character, String name) {
         this.name = name;
         lives = 3;

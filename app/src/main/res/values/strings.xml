@@ -19,10 +19,6 @@
     <string name="Panda_Lore">Pandgeal - The Divine Panda Mage\n\nOne of the several Panda Mages descended from the Land Above to bring peace to Midland.\nAfter witnessing the death of his fellow Panda Mages, he decided to stay in Midland to seek vengeance - to hunt for the mysterious Red Panda that betrayed them.\nHe wields a staff made of bamboo, imbued with divine energy.</string>
     <string name="Scarecrow_Lore">Jack - The Malevolent Pumpkin Sorcerer\n\nThe spirit belonged to an evil sorcerer that was taken to Down Under after committing regicide.\nJack utilizes the dark magic he had studied before his fall.</string>
     <string name="multiplayerModeSetting">Multiplayer Mode</string>
-    <string name="textview">TextView</string>
-
-    <string name="title_activity_login">login</string>
-    <string name="dummy_button">Dummy Button</string>
-    <string name="dummy_content">DUMMY\nCONTENT</string>
-    <string name="error_missing_permissions">accessdenied</string>
+    <string name="error_missing_permissions">Cannot start without required permissions</string>
+    <string name="multiPlayerMaster">Act as the master</string>
 </resources>

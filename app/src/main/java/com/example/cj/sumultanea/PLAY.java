@@ -10,6 +10,8 @@ import android.graphics.Rect;
 import android.graphics.drawable.AnimationDrawable;
 import android.media.MediaPlayer;
 import android.os.Handler;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.support.annotation.CallSuper;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -33,12 +35,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-
-import static com.example.cj.sumultanea.simultanea.DEFAULT_CHARACTER;
-import static com.example.cj.sumultanea.simultanea.TAG;
 import com.google.android.gms.nearby.Nearby;
 import com.google.android.gms.nearby.connection.AdvertisingOptions;
 import com.google.android.gms.nearby.connection.ConnectionInfo;
@@ -46,16 +42,33 @@ import com.google.android.gms.nearby.connection.ConnectionLifecycleCallback;
 import com.google.android.gms.nearby.connection.ConnectionResolution;
 import com.google.android.gms.nearby.connection.ConnectionsClient;
 import com.google.android.gms.nearby.connection.DiscoveredEndpointInfo;
+import com.google.android.gms.nearby.connection.DiscoveryOptions;
+import com.google.android.gms.nearby.connection.EndpointDiscoveryCallback;
+import com.google.android.gms.nearby.connection.Payload;
+import com.google.android.gms.nearby.connection.PayloadCallback;
+import com.google.android.gms.nearby.connection.PayloadTransferUpdate;
+import com.google.android.gms.nearby.connection.PayloadTransferUpdate.Status;
+import com.google.android.gms.nearby.connection.Strategy;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+
+import static com.example.cj.sumultanea.simultanea.DEFAULT_CHARACTER;
+import static com.example.cj.sumultanea.simultanea.TAG;
 
 public class PLAY extends AppCompatActivity {
     private QuizPool quizPool;
     private Random random = new Random();
     TextView questionText;
     private LinearLayout answersLayout;
+    private LinearLayout battleOptionsLayout;
     private Player me;
     private List<Player> otherPlayers = new ArrayList<>();
     private LinearLayout otherPlayersLayout;
+    private TextView textViewLocalPlayer;
     private LinearLayout localPlayerLivesLayout;
     private ImageView localPlayerThumb;
     private ImageView localPlayerAnimation, otherPlayerAnimation;
@@ -63,21 +76,12 @@ public class PLAY extends AppCompatActivity {
     private MediaPlayer ring;
     private final static int MESSAGE_DURATION_MS = 1500;
     private final static int LONG_MESSAGE_DURATION_MS = 3000;
-    private static final int REQUEST_CODE_REQUIRED_PERMISSIONS = 1;
-
     // Animation for when a player looses a life
     private Animation fadeOutAnimation;
     // This is to keep track of which heart is currently animated (only one at a time), so we can stop the animation later
      private ImageView fadingLifeImg = null;
 
-    private static final String[] REQUIRED_PERMISSIONS =
-            new String[] {
-                    Manifest.permission.BLUETOOTH,
-                    Manifest.permission.BLUETOOTH_ADMIN,
-                    Manifest.permission.ACCESS_WIFI_STATE,
-                    Manifest.permission.CHANGE_WIFI_STATE,
-                    Manifest.permission.ACCESS_COARSE_LOCATION,
-            };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -92,9 +96,11 @@ public class PLAY extends AppCompatActivity {
         setContentView(R.layout.activity_play);
 
         // These are the portions of the layout that we will modify during the game
-        questionText = findViewById(R.id.textView4);
+        questionText = findViewById(R.id.questionTextView);
         answersLayout = findViewById(R.id.answersLayout);
+        battleOptionsLayout = findViewById(R.id.battleOptionsLayout);
         otherPlayersLayout = findViewById(R.id.otherPlayersLayout);
+        textViewLocalPlayer = findViewById(R.id.textViewLocalPlayer);
         localPlayerLivesLayout = findViewById(R.id.localPlayerLivesLayout);
         localPlayerAnimation = findViewById(R.id.localPlayerAnimation);
         otherPlayerAnimation = findViewById(R.id.otherPlayerAnimation);
@@ -103,6 +109,7 @@ public class PLAY extends AppCompatActivity {
         localPlayerThumb = findViewById(R.id.imageViewLocalPlayer);
         localPlayerThumb.setImageDrawable(me.animation);
         me.animation.start();
+        textViewLocalPlayer.setText(SettingsActivity.getMultiPlayerAlias());
 
         // Display our lives
         // Remove the fake content we put in the initial layout (for designing)
@@ -116,14 +123,24 @@ public class PLAY extends AppCompatActivity {
             //lifeImg.setAdjustViewBounds(true);
             localPlayerLivesLayout.addView(lifeImg);
         }
+        // Prepare an animation object for when we loose a life
+        fadeOutAnimation = new AlphaAnimation(1, 0);
+        fadeOutAnimation.setDuration(MESSAGE_DURATION_MS / 6);
+        fadeOutAnimation.setInterpolator(new LinearInterpolator());
+        fadeOutAnimation.setRepeatCount(Animation.INFINITE);
+        fadeOutAnimation.setRepeatMode(Animation.REVERSE);
+        // Remove the fake content we put in the initial layout (for designing)
+        otherPlayersLayout.removeAllViews();
 
         if (SettingsActivity.isMultiPlayerMode()) {
-            // TODO: get other players from the network
-            if (!hasPermissions(this, REQUIRED_PERMISSIONS))
-            {
-                ActivityCompat.requestPermissions(this,REQUIRED_PERMISSIONS, REQUEST_CODE_REQUIRED_PERMISSIONS);
-            }
-
+            connectionsClient = Nearby.getConnectionsClient(this);
+            questionText.setText("Waiting for other players...");
+            answersLayout.removeAllViews();
+            me.name = SettingsActivity.getMultiPlayerAlias();
+            if (SettingsActivity.isMultiPlayerMaster())
+                startAdvertising();
+            else
+                startDiscovery();
         } else {
             // Single-player mode: play against all characters (except ours)
             for (int i = 0; i < CharacterPool.charactersList.length; i++) {
@@ -132,8 +149,14 @@ public class PLAY extends AppCompatActivity {
                     otherPlayers.add(new Player(this, i, name));
                 }
             }
+            rebuildOtherPlayersLayout();
+            // Let's get started!
+            quizPool = new QuizPool(this);
+            newQuestion();
         }
+    }
 
+    private void rebuildOtherPlayersLayout() {
         // Remove the fake content we put in the initial layout (for designing)
         otherPlayersLayout.removeAllViews();
         // Fill other players row
@@ -153,10 +176,17 @@ public class PLAY extends AppCompatActivity {
             player.animation.start();
             btn.setAdjustViewBounds(true);
             btn.setEnabled(false);
-            btn.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+            btn.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.MATCH_PARENT));
             btn.setOnClickListener(onClickOtherPlayer);
-            // Add the player button to the vertical container (on top of the lives)
+            // Add the player button to the vertical container (on top of the name and lives)
             playerAndLivesContainer.addView(btn);
+
+            // Name
+            TextView nameTextView = new TextView(this);
+            nameTextView.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+            nameTextView.setText(player.name);
+            nameTextView.setGravity(Gravity.CENTER_HORIZONTAL);
+            playerAndLivesContainer.addView(nameTextView);
 
             // Sub-Container for 3 lives (row)
             LinearLayout livesContainer = new LinearLayout(this);
@@ -178,17 +208,6 @@ public class PLAY extends AppCompatActivity {
             // Finally, add the player and its lives to the game layout.
             otherPlayersLayout.addView(playerAndLivesContainer);
         }
-
-        // Prepare an animation object for when we loose a life
-        fadeOutAnimation = new AlphaAnimation(1, 0);
-        fadeOutAnimation.setDuration(MESSAGE_DURATION_MS / 6);
-        fadeOutAnimation.setInterpolator(new LinearInterpolator());
-        fadeOutAnimation.setRepeatCount(Animation.INFINITE);
-        fadeOutAnimation.setRepeatMode(Animation.REVERSE);
-
-        // Let's get started!
-        quizPool = new QuizPool(this);
-        newQuestion();
     }
 
     @Override
@@ -207,44 +226,31 @@ public class PLAY extends AppCompatActivity {
         ring.stop();
         ring.release();
     }
-    private static boolean hasPermissions(Context context, String... permissions) {
-        for (String permission : permissions) {
-            if (ContextCompat.checkSelfPermission(context, permission)
-                    != PackageManager.PERMISSION_GRANTED) {
-                return false;
-            }
-        }
-        return true;
-    }
 
-    @CallSuper
-    @Override
-    public void onRequestPermissionsResult(
-            int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-
-        if (requestCode != REQUEST_CODE_REQUIRED_PERMISSIONS) {
-            return;
+    private void broadcastEvent(GameEvent event) {
+        Parcel parcel = Parcel.obtain();
+        event.writeToParcel(parcel, 0);
+        byte [] bytes = parcel.marshall();
+        parcel.recycle();
+        for (Player player: otherPlayers) {
+            connectionsClient.sendPayload(player.endpointId, Payload.fromBytes(bytes));
         }
-
-        for (int grantResult : grantResults) {
-            if (grantResult == PackageManager.PERMISSION_DENIED) {
-                Toast.makeText(this, R.string.error_missing_permissions, Toast.LENGTH_LONG).show();
-                finish();
-                return;
-            }
-        }
-        recreate();
     }
 
     private void newQuestion() {
-        QuizPool.Entry currentQuestion = quizPool.getQuestion();
-        questionText.setText(currentQuestion.question);
+        QuizPool.Entry entry = quizPool.getQuestion();
+        if (SettingsActivity.isMultiPlayerMode() && SettingsActivity.isMultiPlayerMaster()) {
+            broadcastEvent(new GameEvent(entry));
+        }
+    }
+
+    private void setQuestion(QuizPool.Entry entry) {
+        questionText.setText(entry.question);
 
         // We clear-out the old buttons, and create new ones for the current question
         answersLayout.removeAllViews();
         int count = 0;
-        for (QuizPool.Answer answer : currentQuestion.answers) {
+        for (QuizPool.Answer answer : entry.answers) {
             Button button = new Button(this);
             button.setText(answer.text);
             button.setTag(R.id.id_answer, answer);
@@ -293,6 +299,25 @@ public class PLAY extends AppCompatActivity {
                 recursiveSetEnabled(enable, (ViewGroup) child);
             }
         }
+    }
+
+    public void showQuestion(View view) {
+        answersLayout.setVisibility(View.INVISIBLE);
+        battleOptionsLayout.setVisibility(View.INVISIBLE);
+        questionText.setVisibility(View.VISIBLE);
+        questionText.bringToFront();
+    }
+    public void showAnswers(View view) {
+        questionText.setVisibility(View.INVISIBLE);
+        battleOptionsLayout.setVisibility(View.INVISIBLE);
+        answersLayout.setVisibility(View.VISIBLE);
+        answersLayout.bringToFront();
+    }
+    public void showBattleOptions(View view) {
+        questionText.setVisibility(View.INVISIBLE);
+        answersLayout.setVisibility(View.INVISIBLE);
+        battleOptionsLayout.setVisibility(View.VISIBLE);
+        battleOptionsLayout.bringToFront();
     }
 
     private void disableAnswerButtons() {
@@ -676,8 +701,10 @@ public class PLAY extends AppCompatActivity {
                         @Override
                         public void onCompletion(MediaPlayer mediaPlayer) {
                             mediaPlayer.release();
+                            ring.setVolume(1.0f, 1.0f);
                         }
                     });
+                    ring.setVolume(1.0f, 0.5f);
                     mediaPlayer.start();
                     break; // no need to continue, we have at least 1 opponent alive.
 
@@ -691,4 +718,257 @@ public class PLAY extends AppCompatActivity {
             }
         }
     };
+
+
+
+    /*
+     * Multiplayer connection code based on the rockpaperscissors example from:
+     * https://github.com/googlesamples/android-nearby
+     */
+    private static final String[] REQUIRED_PERMISSIONS =
+            new String[] {
+                    Manifest.permission.BLUETOOTH,
+                    Manifest.permission.BLUETOOTH_ADMIN,
+                    Manifest.permission.ACCESS_WIFI_STATE,
+                    Manifest.permission.CHANGE_WIFI_STATE,
+                    Manifest.permission.ACCESS_COARSE_LOCATION,
+            };
+
+    private static final int REQUEST_CODE_REQUIRED_PERMISSIONS = 1;
+
+    private static final Strategy STRATEGY = Strategy.P2P_STAR;
+
+    private static class GameEvent implements Parcelable {
+        public static final int TYPE_QUESTION = 0;
+        public int type;
+
+        QuizPool.Entry entry;
+
+        GameEvent(QuizPool.Entry entry) {
+            type = TYPE_QUESTION;
+            this.entry = entry;
+        }
+
+        protected GameEvent(Parcel in) {
+            type = in.readInt();
+            switch (type) {
+                case TYPE_QUESTION:
+                    entry = new QuizPool.Entry(in);
+            }
+        }
+
+        public static final Creator<GameEvent> CREATOR = new Creator<GameEvent>() {
+            @Override
+            public GameEvent createFromParcel(Parcel in) {
+                return new GameEvent(in);
+            }
+
+            @Override
+            public GameEvent[] newArray(int size) {
+                return new GameEvent[size];
+            }
+        };
+
+        @Override
+        public int describeContents() {
+            return 0;
+        }
+
+        @Override
+        public void writeToParcel(Parcel dest, int flags) {
+            dest.writeInt(type);
+            switch (type) {
+                case TYPE_QUESTION:
+                    entry.writeToParcel(dest, flags);
+                    break;
+            }
+        }
+    }
+    // Our handle to Nearby Connections
+    private ConnectionsClient connectionsClient;
+
+    private final Map<String, String> mDiscoveredPlayers = new HashMap<>();
+    private final Map<String, String> mPendingConnections = new HashMap<>();
+    private final Map<String, String> mEstablishedConnections = new HashMap<>();
+
+    // Callbacks for receiving payloads
+    private final PayloadCallback payloadCallback =
+            new PayloadCallback() {
+                @Override
+                public void onPayloadReceived(String endpointId, Payload payload) {
+                    Parcel parcel = Parcel.obtain();
+                    byte bytes[] = payload.asBytes();
+                    parcel.unmarshall(bytes, 0, bytes.length);
+                    parcel.setDataPosition(0);
+                    GameEvent event = GameEvent.CREATOR.createFromParcel(parcel);
+                    parcel.recycle();
+                    switch (event.type) {
+                        case GameEvent.TYPE_QUESTION:
+                            setQuestion(event.entry);
+                            break;
+                    }
+                }
+
+                @Override
+                public void onPayloadTransferUpdate(String endpointId, PayloadTransferUpdate update) {
+                    if (update.getStatus() == Status.SUCCESS /*&& myChoice != null && opponentChoice != null*/) {
+                        //finishRound();
+                    }
+                }
+            };
+
+    // Callbacks for finding other devices
+    private final EndpointDiscoveryCallback endpointDiscoveryCallback =
+            new EndpointDiscoveryCallback() {
+                @Override
+                public void onEndpointFound(String endpointId, DiscoveredEndpointInfo info) {
+                    Log.i(TAG, "onEndpointFound: endpoint found, connecting");
+                    connectionsClient.requestConnection(me.name, endpointId, connectionLifecycleCallback);
+                }
+
+                @Override
+                public void onEndpointLost(String endpointId) {}
+            };
+
+    // Callbacks for connections to other devices
+    private final ConnectionLifecycleCallback connectionLifecycleCallback =
+            new ConnectionLifecycleCallback() {
+                @Override
+                public void onConnectionInitiated(String endpointId, ConnectionInfo connectionInfo) {
+                    if (me.name == connectionInfo.getEndpointName()) {
+                        Log.e(TAG, "This game is too small for both of us " + connectionInfo.getEndpointName());
+                        questionText.setText("Somebody is trying to connect with the same name as me " + connectionInfo.getEndpointName());
+                        connectionsClient.rejectConnection(endpointId);
+                        return;
+                    }
+                    for (Player player : otherPlayers) {
+                        if (player.name == connectionInfo.getEndpointName()) {
+                            Log.e(TAG, "Sorry, we already have a player named " + connectionInfo.getEndpointName());
+                            questionText.setText("Somebody is trying to connect with the same name as an existing player " + connectionInfo.getEndpointName());
+                            connectionsClient.rejectConnection(endpointId);
+                            return;
+                        }
+                    }
+                    Log.i(TAG, "onConnectionInitiated: accepting connection");
+                    questionText.setText("Accepting connection from " + connectionInfo.getEndpointName().toString());
+                    connectionsClient.acceptConnection(endpointId, payloadCallback);
+                    mPendingConnections.put(endpointId, connectionInfo.getEndpointName());
+                }
+
+                @Override
+                public void onConnectionResult(String endpointId, ConnectionResolution result) {
+                    if (result.getStatus().isSuccess()) {
+                        Log.i(TAG, "onConnectionResult: connection successful");
+
+                        final Context context = otherPlayersLayout.getContext();
+                        otherPlayers.add(new Player(context, 0, mPendingConnections.get(endpointId).toString()));
+                        if (otherPlayers.size()==1) {
+                            Button button = new Button(context);
+                            button.setText("Start playing now...");
+                            button.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    connectionsClient.stopDiscovery();
+                                    connectionsClient.stopAdvertising();
+                                    // Let's get started!
+                                    quizPool = new QuizPool(context);
+                                    newQuestion();
+                                }
+                            });
+                            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                            lp.gravity = Gravity.CENTER;
+                            button.setLayoutParams(lp);
+                            answersLayout.addView(button);
+                        }
+                        mEstablishedConnections.put(endpointId, mPendingConnections.remove(endpointId));
+                        rebuildOtherPlayersLayout();
+                    } else {
+                        Log.i(TAG, "onConnectionResult: connection failed");
+                        mPendingConnections.remove(endpointId);
+                    }
+                }
+
+                @Override
+                public void onDisconnected(String endpointId) {
+                    questionText.setText("Disconnected from " + mEstablishedConnections.get(endpointId));
+                    Player player;
+                    for (int i = 0; i < otherPlayers.size(); i++) {
+                        player = otherPlayers.get(i);
+                        if (player.name == mEstablishedConnections.get(endpointId)) {
+                            player.lives = 0;
+                            victim_container = (LinearLayout) otherPlayersLayout.getChildAt(i);
+                            ImageButton imageButton = (ImageButton) victim_container.getChildAt(0);
+                            imageButton.setImageResource(player.mCharacter.getDeadImageId());
+                            LinearLayout livesContainer = (LinearLayout) victim_container.getChildAt(1);
+                            livesContainer.removeAllViews();
+                            handler.postDelayed(doRemovePlayer, LONG_MESSAGE_DURATION_MS);
+                            break;
+                        }
+                    }
+                }
+            };
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (SettingsActivity.isMultiPlayerMode()) {
+            if (!hasPermissions(this, REQUIRED_PERMISSIONS)) {
+                ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, REQUEST_CODE_REQUIRED_PERMISSIONS);
+            }
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        if (connectionsClient != null) {
+            connectionsClient.stopAllEndpoints();
+        }
+        super.onStop();
+    }
+
+    /** Returns true if the app was granted all the permissions. Otherwise, returns false. */
+    private static boolean hasPermissions(Context context, String... permissions) {
+        for (String permission : permissions) {
+            if (ContextCompat.checkSelfPermission(context, permission)
+                    != PackageManager.PERMISSION_GRANTED) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /** Handles user acceptance (or denial) of our permission request. */
+    @CallSuper
+    @Override
+    public void onRequestPermissionsResult(
+            int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode != REQUEST_CODE_REQUIRED_PERMISSIONS) {
+            return;
+        }
+
+        for (int grantResult : grantResults) {
+            if (grantResult == PackageManager.PERMISSION_DENIED) {
+                Toast.makeText(this, R.string.error_missing_permissions, Toast.LENGTH_LONG).show();
+                finish();
+                return;
+            }
+        }
+        recreate();
+    }
+
+    /** Starts looking for other players using Nearby Connections. */
+    private void startDiscovery() {
+        // Note: Discovery may fail. To keep this demo simple, we don't handle failures.
+        connectionsClient.startDiscovery(
+                getPackageName(), endpointDiscoveryCallback, new DiscoveryOptions(STRATEGY));
+    }
+
+    /** Broadcasts our presence using Nearby Connections so other players can find us. */
+    private void startAdvertising() {
+        // Note: Advertising may fail. To keep this demo simple, we don't handle failures.
+        connectionsClient.startAdvertising(
+                me.name, getPackageName(), connectionLifecycleCallback, new AdvertisingOptions(STRATEGY));
+    }
 }
