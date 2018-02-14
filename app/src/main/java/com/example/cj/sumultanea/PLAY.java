@@ -1,6 +1,7 @@
 package com.example.cj.sumultanea;
 
 import android.Manifest;
+import android.app.ActionBar;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -9,6 +10,7 @@ import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.drawable.AnimationDrawable;
 import android.media.MediaPlayer;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -24,6 +26,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewPropertyAnimator;
+import android.view.WindowManager;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.DecelerateInterpolator;
@@ -72,6 +75,8 @@ public class PLAY extends AppCompatActivity {
     private LinearLayout localPlayerLivesLayout;
     private ImageView localPlayerThumb;
     private ImageView localPlayerAnimation, otherPlayerAnimation;
+    private LinearLayout controlsLayout;
+    private Button buttonQuestion, buttonAnswers, buttonBattle;
     private Handler handler = new Handler();
     private MediaPlayer ring;
     private final static int MESSAGE_DURATION_MS = 1500;
@@ -79,16 +84,43 @@ public class PLAY extends AppCompatActivity {
     // Animation for when a player looses a life
     private Animation fadeOutAnimation;
     // This is to keep track of which heart is currently animated (only one at a time), so we can stop the animation later
-     private ImageView fadingLifeImg = null;
+    private ImageView fadingLifeImg = null;
 
+    private boolean isMultiPlayerMode;
+    private boolean isMultiPlayerMaster;
+    private String mMultiPlayerAlias;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        /* Code for hiding the status bar from
+         * https://developer.android.com/training/system-ui/status.html
+         */
+        // If the Android version is lower than Jellybean, use this call to hide
+        // the status bar.
+        if (Build.VERSION.SDK_INT < 16) {
+            getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                    WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        } else {
+            View decorView = getWindow().getDecorView();
+            // Hide the status bar.
+            int uiOptions = View.SYSTEM_UI_FLAG_FULLSCREEN;
+            decorView.setSystemUiVisibility(uiOptions);
+            // Remember that you should never show the action bar if the
+            // status bar is hidden, so hide that too if necessary.
+            ActionBar actionBar = getActionBar();
+            if (actionBar != null)
+                actionBar.hide();
+        }
         // Retrieve the character selection sent by the main activity as part of the "intent"
         Intent intent = getIntent();
         int character = intent.getIntExtra(simultanea.CHARACTER_KEY, DEFAULT_CHARACTER);
+
+        isMultiPlayerMode = SettingsActivity.isMultiPlayerMode(this);
+        isMultiPlayerMaster = SettingsActivity.isMultiPlayerMaster(this);
+        mMultiPlayerAlias = SettingsActivity.getMultiPlayerAlias(this);
+
         me = new Player(this, character, "Me");
         Log.d(TAG, "Playing as character " + character);
 
@@ -105,11 +137,19 @@ public class PLAY extends AppCompatActivity {
         localPlayerAnimation = findViewById(R.id.localPlayerAnimation);
         otherPlayerAnimation = findViewById(R.id.otherPlayerAnimation);
 
+        controlsLayout = findViewById(R.id.controlsLayout);
+        buttonQuestion = findViewById(R.id.buttonQuestion);
+        buttonQuestion.setEnabled(false);
+        buttonAnswers = findViewById(R.id.buttonAnswers);
+        buttonAnswers.setEnabled(false);
+        buttonBattle = findViewById(R.id.buttonBattle);
+        buttonBattle.setEnabled(false);
+
         // Set our character image
         localPlayerThumb = findViewById(R.id.imageViewLocalPlayer);
         localPlayerThumb.setImageDrawable(me.animation);
         me.animation.start();
-        textViewLocalPlayer.setText(SettingsActivity.getMultiPlayerAlias());
+        textViewLocalPlayer.setText(mMultiPlayerAlias);
 
         // Display our lives
         // Remove the fake content we put in the initial layout (for designing)
@@ -132,12 +172,12 @@ public class PLAY extends AppCompatActivity {
         // Remove the fake content we put in the initial layout (for designing)
         otherPlayersLayout.removeAllViews();
 
-        if (SettingsActivity.isMultiPlayerMode()) {
+        if (isMultiPlayerMode) {
             connectionsClient = Nearby.getConnectionsClient(this);
             questionText.setText("Waiting for other players...");
             answersLayout.removeAllViews();
-            me.name = SettingsActivity.getMultiPlayerAlias();
-            if (SettingsActivity.isMultiPlayerMaster())
+            me.name = mMultiPlayerAlias;
+            if (isMultiPlayerMaster)
                 startAdvertising();
             else
                 startDiscovery();
@@ -239,7 +279,7 @@ public class PLAY extends AppCompatActivity {
 
     private void newQuestion() {
         QuizPool.Entry entry = quizPool.getQuestion();
-        if (SettingsActivity.isMultiPlayerMode() && SettingsActivity.isMultiPlayerMaster()) {
+        if (isMultiPlayerMode && isMultiPlayerMaster) {
             broadcastEvent(new GameEvent(entry));
         }
     }
@@ -267,7 +307,10 @@ public class PLAY extends AppCompatActivity {
             }
             count++;
         }
-        answersLayout.setVisibility(View.VISIBLE);
+        controlsLayout.setVisibility(View.VISIBLE);
+        buttonQuestion.setEnabled(true);
+        buttonAnswers.setEnabled(true);
+        buttonBattle.setEnabled(true);
     }
 
     private View.OnClickListener onClickAnswer = new View.OnClickListener() {
@@ -911,7 +954,7 @@ public class PLAY extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        if (SettingsActivity.isMultiPlayerMode()) {
+        if (isMultiPlayerMode) {
             if (!hasPermissions(this, REQUIRED_PERMISSIONS)) {
                 ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, REQUEST_CODE_REQUIRED_PERMISSIONS);
             }
