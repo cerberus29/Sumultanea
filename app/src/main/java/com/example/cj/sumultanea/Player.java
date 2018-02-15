@@ -10,10 +10,12 @@ public class Player {
     public String name;
     public Character mCharacter;
     public String endpointId;
+    public boolean answered;
     public Player(Context context, int character, String name) {
         this.name = name;
         lives = 3;
         mCharacter = CharacterPool.charactersList[character];
         animation = (AnimationDrawable) ContextCompat.getDrawable(context,mCharacter.getImageResource());
+        answered = false;
     }
 }

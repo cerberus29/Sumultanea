@@ -63,6 +63,12 @@ import static com.example.cj.sumultanea.simultanea.DEFAULT_CHARACTER;
 import static com.example.cj.sumultanea.simultanea.TAG;
 
 public class PLAY extends AppCompatActivity {
+
+    private final static int STATE_WAITING_FOR_PLAYERS = 1;
+    private final static int STATE_WAITING_FOR_QUESTION = 2;
+    private final static int STATE_WAITING_FOR_ANSWER = 3;
+    private int state = STATE_WAITING_FOR_PLAYERS;
+
     private QuizPool quizPool;
     private Random random = new Random();
     TextView questionText;
@@ -77,6 +83,7 @@ public class PLAY extends AppCompatActivity {
     private ImageView localPlayerAnimation, otherPlayerAnimation;
     private LinearLayout controlsLayout;
     private Button buttonQuestion, buttonAnswers, buttonBattle;
+    private Button buttonHeal, buttonAttack, buttonDefend;
     private Handler handler = new Handler();
     private MediaPlayer ring;
     private final static int MESSAGE_DURATION_MS = 1500;
@@ -113,10 +120,12 @@ public class PLAY extends AppCompatActivity {
             if (actionBar != null)
                 actionBar.hide();
         }
+
         // Retrieve the character selection sent by the main activity as part of the "intent"
         Intent intent = getIntent();
         int character = intent.getIntExtra(simultanea.CHARACTER_KEY, DEFAULT_CHARACTER);
 
+        // Retrieve a copy of the settings (cannot change during the game)
         isMultiPlayerMode = SettingsActivity.isMultiPlayerMode(this);
         isMultiPlayerMaster = SettingsActivity.isMultiPlayerMaster(this);
         mMultiPlayerAlias = SettingsActivity.getMultiPlayerAlias(this);
@@ -139,14 +148,18 @@ public class PLAY extends AppCompatActivity {
 
         controlsLayout = findViewById(R.id.controlsLayout);
         buttonQuestion = findViewById(R.id.buttonQuestion);
-        buttonQuestion.setEnabled(false);
         buttonAnswers = findViewById(R.id.buttonAnswers);
-        buttonAnswers.setEnabled(false);
         buttonBattle = findViewById(R.id.buttonBattle);
-        buttonBattle.setEnabled(false);
+
+        buttonHeal = findViewById(R.id.buttonHeal);
+        buttonAttack = findViewById(R.id.buttonAttack);
+        buttonDefend = findViewById(R.id.buttonDefend);
+
+        localPlayerThumb = findViewById(R.id.imageViewLocalPlayer);
+
+        updateControlButtons();
 
         // Set our character image
-        localPlayerThumb = findViewById(R.id.imageViewLocalPlayer);
         localPlayerThumb.setImageDrawable(me.animation);
         me.animation.start();
         textViewLocalPlayer.setText(mMultiPlayerAlias);
@@ -278,9 +291,22 @@ public class PLAY extends AppCompatActivity {
     }
 
     private void newQuestion() {
-        QuizPool.Entry entry = quizPool.getQuestion();
-        if (isMultiPlayerMode && isMultiPlayerMaster) {
-            broadcastEvent(new GameEvent(entry));
+        if (isMultiPlayerMode) {
+            if (isMultiPlayerMaster) {
+                QuizPool.Entry entry = quizPool.getQuestion();
+                GameEvent event = new GameEvent(GameEvent.TYPE_QUESTION);
+                event.entry = entry;
+                broadcastEvent(event);
+                for (Player player: otherPlayers) {
+                    player.answered = false;
+                }
+                setQuestion(entry);
+            } else {
+                // Do nothing
+            }
+        } else {
+            QuizPool.Entry entry = quizPool.getQuestion();
+            setQuestion(entry);
         }
     }
 
@@ -307,29 +333,54 @@ public class PLAY extends AppCompatActivity {
             }
             count++;
         }
-        controlsLayout.setVisibility(View.VISIBLE);
-        buttonQuestion.setEnabled(true);
-        buttonAnswers.setEnabled(true);
-        buttonBattle.setEnabled(true);
+        state = STATE_WAITING_FOR_ANSWER;
+        updateControlButtons();
     }
 
     private View.OnClickListener onClickAnswer = new View.OnClickListener() {
         public void onClick(View v) {
+            if (state != STATE_WAITING_FOR_ANSWER) {
+                Log.e(TAG, "Unexpected answer click while in state " + state);
+                return;
+            }
+            state = STATE_WAITING_FOR_QUESTION;
+
             // First thing: prevent user from clicking other answers while we handle this one.
-            disableAnswerButtons();
+            recursiveSetEnabled(false, answersLayout);
+
             // Retrieve the answer associated with this button
             QuizPool.Answer answer = (QuizPool.Answer) v.getTag(R.id.id_answer);
             if (answer.correct) {
                 Log.d(TAG, "Correct!");
                 questionText.setText(R.string.answer_correct);
                 v.setBackgroundColor(ColorUtils.setAlphaComponent(Color.GREEN, 150));
-                enablePlayersButtons(true);
             } else {
                 Log.d(TAG, "Incorrect!");
                 questionText.setText(R.string.answer_incorrect);
                 v.setBackgroundColor(ColorUtils.setAlphaComponent(Color.RED, 150));
-                handler.postDelayed(waitForYourFate, MESSAGE_DURATION_MS);
             }
+
+            if (isMultiPlayerMode && !isMultiPlayerMaster) {
+                // Do nothing, just wait for task master to send a new question
+            } else {
+                // Wait for all players to answer, then send a new question
+                handler.post(checkAllPlayersAnswered);
+            }
+        }
+    };
+
+    private Runnable checkAllPlayersAnswered = new Runnable() {
+        @Override
+        public void run() {
+            for (Player player: otherPlayers) {
+                if (!player.answered) {
+                    // Check back in 1 second
+                    handler.postDelayed(this, 1000);
+                    return;
+                }
+            }
+            // Everyone has answered, time for a new question
+            newQuestion();
         }
     };
 
@@ -344,6 +395,37 @@ public class PLAY extends AppCompatActivity {
         }
     }
 
+    /**
+     * Function to enable or disable the Question/Answers/Battle buttons
+     */
+    private void updateControlButtons() {
+        switch (state) {
+            case STATE_WAITING_FOR_PLAYERS:
+                controlsLayout.setVisibility(View.GONE);
+                buttonQuestion.setEnabled(false);
+                buttonAnswers.setEnabled(false);
+                buttonBattle.setEnabled(false);
+                break;
+            case STATE_WAITING_FOR_QUESTION:
+                controlsLayout.setVisibility(View.VISIBLE);
+                buttonQuestion.setEnabled(true);
+                buttonAnswers.setEnabled(false);
+                buttonBattle.setEnabled(true);
+                break;
+            case STATE_WAITING_FOR_ANSWER:
+                controlsLayout.setVisibility(View.GONE);
+                buttonQuestion.setEnabled(false);
+                buttonAnswers.setEnabled(false);
+                buttonBattle.setEnabled(false);
+                break;
+        }
+    }
+
+    /**
+     * Functions to change the content of the bottom-right box
+     *
+     * These are called when the user clicks on the
+     */
     public void showQuestion(View view) {
         answersLayout.setVisibility(View.INVISIBLE);
         battleOptionsLayout.setVisibility(View.INVISIBLE);
@@ -361,10 +443,6 @@ public class PLAY extends AppCompatActivity {
         answersLayout.setVisibility(View.INVISIBLE);
         battleOptionsLayout.setVisibility(View.VISIBLE);
         battleOptionsLayout.bringToFront();
-    }
-
-    private void disableAnswerButtons() {
-        recursiveSetEnabled(false, answersLayout);
     }
 
     /**
@@ -783,13 +861,13 @@ public class PLAY extends AppCompatActivity {
 
     private static class GameEvent implements Parcelable {
         public static final int TYPE_QUESTION = 0;
+        public static final int TYPE_PLAYER_ANSWERED = 1;
         public int type;
 
         QuizPool.Entry entry;
 
-        GameEvent(QuizPool.Entry entry) {
-            type = TYPE_QUESTION;
-            this.entry = entry;
+        public GameEvent(int type) {
+            this.type = type;
         }
 
         protected GameEvent(Parcel in) {
@@ -797,6 +875,9 @@ public class PLAY extends AppCompatActivity {
             switch (type) {
                 case TYPE_QUESTION:
                     entry = new QuizPool.Entry(in);
+                    break;
+                case TYPE_PLAYER_ANSWERED:
+                    break;
             }
         }
 
@@ -847,7 +928,19 @@ public class PLAY extends AppCompatActivity {
                     parcel.recycle();
                     switch (event.type) {
                         case GameEvent.TYPE_QUESTION:
-                            setQuestion(event.entry);
+                            if (isMultiPlayerMaster) {
+                                Log.e(TAG, "Task master wasn't expecting a question");
+                            } else {
+                                setQuestion(event.entry);
+                            }
+                            break;
+                        case GameEvent.TYPE_PLAYER_ANSWERED:
+                            for (Player player: otherPlayers) {
+                                if (player.endpointId == endpointId) {
+                                    player.answered = true;
+                                    break;
+                                }
+                            }
                             break;
                     }
                 }
