@@ -34,25 +34,13 @@
             android:gravity="center_horizontal"
             android:text="Name" />
 
-        <LinearLayout
-            android:id="@+id/localPlayerLivesLayout"
+        <ProgressBar
+            android:id="@+id/localPlayerHealth"
+            style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:orientation="horizontal">
+            android:progress="100" />
 
-            <ImageView
-                android:layout_width="30px"
-                android:layout_height="30px"
-                android:adjustViewBounds="true"
-                app:srcCompat="@drawable/heart" />
-
-            <ImageView
-                android:layout_width="30px"
-                android:layout_height="30px"
-                android:adjustViewBounds="true"
-                app:srcCompat="@drawable/heart" />
-        </LinearLayout>
     </LinearLayout>
 
     <LinearLayout
@@ -87,30 +75,12 @@
                 android:gravity="center_horizontal"
                 android:text="Name" />
 
-            <LinearLayout
+            <ProgressBar
+                style="?android:attr/progressBarStyleHorizontal"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center"
-                android:orientation="horizontal">
+                android:progress="100" />
 
-                <ImageView
-                    android:layout_width="8dp"
-                    android:layout_height="8dp"
-                    android:adjustViewBounds="true"
-                    app:srcCompat="@drawable/heart" />
-
-                <ImageView
-                    android:layout_width="8dp"
-                    android:layout_height="8dp"
-                    android:adjustViewBounds="true"
-                    app:srcCompat="@drawable/heart" />
-
-                <ImageView
-                    android:layout_width="8dp"
-                    android:layout_height="8dp"
-                    android:adjustViewBounds="true"
-                    app:srcCompat="@drawable/heart" />
-            </LinearLayout>
         </LinearLayout>
 
         <LinearLayout
@@ -131,30 +101,12 @@
                 android:gravity="center_horizontal"
                 android:text="Name" />
 
-            <LinearLayout
+            <ProgressBar
+                style="?android:attr/progressBarStyleHorizontal"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center"
-                android:orientation="horizontal">
+                android:progress="80" />
 
-                <ImageView
-                    android:layout_width="8dp"
-                    android:layout_height="8dp"
-                    android:adjustViewBounds="true"
-                    app:srcCompat="@drawable/heart" />
-
-                <ImageView
-                    android:layout_width="8dp"
-                    android:layout_height="8dp"
-                    android:adjustViewBounds="true"
-                    app:srcCompat="@drawable/heart" />
-
-                <ImageView
-                    android:layout_width="8dp"
-                    android:layout_height="8dp"
-                    android:adjustViewBounds="true"
-                    app:srcCompat="@drawable/heart" />
-            </LinearLayout>
         </LinearLayout>
 
         <LinearLayout
@@ -175,30 +127,12 @@
                 android:gravity="center_horizontal"
                 android:text="Name" />
 
-            <LinearLayout
+            <ProgressBar
+                style="?android:attr/progressBarStyleHorizontal"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center"
-                android:orientation="horizontal">
+                android:progress="30" />
 
-                <ImageView
-                    android:layout_width="8dp"
-                    android:layout_height="8dp"
-                    android:adjustViewBounds="true"
-                    app:srcCompat="@drawable/heart" />
-
-                <ImageView
-                    android:layout_width="8dp"
-                    android:layout_height="8dp"
-                    android:adjustViewBounds="true"
-                    app:srcCompat="@drawable/heart" />
-
-                <ImageView
-                    android:layout_width="8dp"
-                    android:layout_height="8dp"
-                    android:adjustViewBounds="true"
-                    app:srcCompat="@drawable/heart" />
-            </LinearLayout>
         </LinearLayout>
 
         <LinearLayout
@@ -219,30 +153,12 @@
                 android:gravity="center_horizontal"
                 android:text="Name" />
 
-            <LinearLayout
+            <ProgressBar
+                style="?android:attr/progressBarStyleHorizontal"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center"
-                android:orientation="horizontal">
+                android:progress="10" />
 
-                <ImageView
-                    android:layout_width="8dp"
-                    android:layout_height="8dp"
-                    android:adjustViewBounds="true"
-                    app:srcCompat="@drawable/heart" />
-
-                <ImageView
-                    android:layout_width="8dp"
-                    android:layout_height="8dp"
-                    android:adjustViewBounds="true"
-                    app:srcCompat="@drawable/heart" />
-
-                <ImageView
-                    android:layout_width="8dp"
-                    android:layout_height="8dp"
-                    android:adjustViewBounds="true"
-                    app:srcCompat="@drawable/heart" />
-            </LinearLayout>
         </LinearLayout>
     </LinearLayout>
 
@@ -278,29 +194,25 @@
                 android:id="@+id/answer4"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center"
-                android:text="Button" />
+                android:gravity="center" />
 
             <Button
                 android:id="@+id/answer3"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center"
-                android:text="Button" />
+                android:gravity="center" />
 
             <Button
                 android:id="@+id/answer2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center"
-                android:text="Button" />
+                android:gravity="center" />
 
             <Button
                 android:id="@+id/answer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center"
-                android:text="Button" />
+                android:gravity="center" />
         </LinearLayout>
 
         <LinearLayout
@@ -315,18 +227,21 @@
                 android:id="@+id/buttonHeal"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Button" />
+                android:onClick="buttonHealClicked"
+                android:text="Heal" />
 
             <Button
                 android:id="@+id/buttonAttack"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:onClick="buttonAttackClicked"
                 android:text="Attack" />
 
             <Button
                 android:id="@+id/buttonDefend"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:onClick="buttonDefendClicked"
                 android:text="Defend" />
         </LinearLayout>
     </FrameLayout>

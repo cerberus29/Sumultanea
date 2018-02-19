@@ -24,30 +24,40 @@ class GameMessage {
 
     static final int GAME_MESSAGE_TYPE_PLAYER_INFO = 1;
     static final int GAME_MESSAGE_TYPE_QUESTION = 2;
+    static final int GAME_MESSAGE_TYPE_ATTACK = 3;
     private static final String KEY_VERSION = "version";
     private static final String KEY_TYPE = "type";
 
     private int mType;
     private QuizPool.Entry mQuestion;
 
-    static class Message {
+    static class MessageInfo {
         int version = GAME_MESSAGE_API_VERSION;
         int type;
 
-        Message(int type) {
+        MessageInfo(int type) {
             this.type = type;
         }
     }
 
-    static class PlayerInfo extends Message {
+    static class PlayerInfo extends MessageInfo {
         String name;
         String character;
         int health;
+        int battle;
         PlayerInfo() {
             super(GAME_MESSAGE_TYPE_PLAYER_INFO);
         }
     }
     PlayerInfo playerInfo;
+
+    static class AttackInfo extends MessageInfo {
+        String victim;
+        AttackInfo() {
+            super(GAME_MESSAGE_TYPE_ATTACK);
+        }
+    }
+    AttackInfo attackInfo;
 
     /**
      * Parse a message into a GameMessage object, according to the API version.
@@ -81,6 +91,9 @@ class GameMessage {
             case GAME_MESSAGE_TYPE_PLAYER_INFO:
                 msg.playerInfo = gson.fromJson(jsonString, PlayerInfo.class);
                 return msg;
+            case GAME_MESSAGE_TYPE_ATTACK:
+                msg.attackInfo = gson.fromJson(jsonString, AttackInfo.class);
+                return msg;
         }
         return null;
     }
@@ -91,6 +104,9 @@ class GameMessage {
         switch (mType) {
             case GAME_MESSAGE_TYPE_PLAYER_INFO:
                 jsonString = gson.toJson(playerInfo);
+                break;
+            case GAME_MESSAGE_TYPE_ATTACK:
+                jsonString = gson.toJson(attackInfo);
                 break;
             default:
                 return null;
@@ -105,6 +121,14 @@ class GameMessage {
 
     void setType(int type) {
         mType = type;
+        switch (type) {
+            case GAME_MESSAGE_TYPE_PLAYER_INFO:
+                playerInfo = new PlayerInfo();
+                break;
+            case GAME_MESSAGE_TYPE_ATTACK:
+                attackInfo = new AttackInfo();
+                break;
+        }
     }
 
     QuizPool.Entry getQuestion() {

@@ -33,6 +33,7 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -95,7 +96,7 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
     private List<Player> otherPlayers = new ArrayList<>();
     private LinearLayout otherPlayersLayout;
     private TextView textViewLocalPlayer;
-    private LinearLayout localPlayerLivesLayout;
+    private ProgressBar localPlayerHealth;
     private ImageView localPlayerThumb;
     private ImageView localPlayerAnimation, otherPlayerAnimation;
     private LinearLayout controlsLayout;
@@ -103,11 +104,7 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
     private Button buttonHeal, buttonAttack, buttonDefend;
     private Handler handler = new Handler();
     private MediaPlayer mMusic;
-    // Animation for when a player looses a life
     private Animation fadeOutAnimation;
-    // This is to keep track of which heart is currently animated (only one at a time), so we can stop the animation later
-    private ImageView fadingLifeImg = null;
-    private boolean isMultiPlayerMode;
     private boolean isTaskMaster;
     private Runnable doAddFakePlayer = new Runnable() {
         @Override
@@ -136,7 +133,6 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
     private LinearLayout victim_container = null;
     // Our handle to Nearby Connections
     private ConnectionsClient connectionsClient;
-    private List<String> mPendingPlayerInfo = new ArrayList<>();
     // Callbacks for receiving payloads
     private final PayloadCallback payloadCallback =
             new PayloadCallback() {
@@ -222,7 +218,6 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
         PreferencesProxy prefs = new PreferencesProxy(this);
 
         // Retrieve a copy of the settings (cannot change during the game)
-        isMultiPlayerMode = prefs.isMultiPlayerMode();
         isTaskMaster = prefs.isMultiPlayerMaster();
         String name = prefs.getMultiPlayerAlias();
 
@@ -240,7 +235,6 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
         battleOptionsLayout = findViewById(R.id.battleOptionsLayout);
         otherPlayersLayout = findViewById(R.id.otherPlayersLayout);
         textViewLocalPlayer = findViewById(R.id.textViewLocalPlayer);
-        localPlayerLivesLayout = findViewById(R.id.localPlayerLivesLayout);
         localPlayerAnimation = findViewById(R.id.localPlayerAnimation);
         otherPlayerAnimation = findViewById(R.id.otherPlayerAnimation);
 
@@ -255,29 +249,14 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
         buttonDefend = findViewById(R.id.buttonDefend);
 
         localPlayerThumb = findViewById(R.id.imageViewLocalPlayer);
+        localPlayerHealth = findViewById(R.id.localPlayerHealth);
 
         buttonQuestion.setEnabled(false);
         buttonAnswers.setEnabled(false);
         buttonBattle.setEnabled(false);
 
-        // Set our character image
-        AnimationDrawable animationDrawable = me.getAnimation();
-        localPlayerThumb.setImageDrawable(animationDrawable);
-        animationDrawable.start();
-        textViewLocalPlayer.setText(me.getName());
+        updateLocalPlayerUi();
 
-        // Display our lives
-        // Remove the fake content we put in the initial layout (for designing)
-        localPlayerLivesLayout.removeAllViews();
-        for (int i = 0; i < me.getHealth(); i++) {
-            ImageView lifeImg = new ImageView(this);
-            lifeImg.setImageResource(R.drawable.heart);
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(30, 30);
-            lp.gravity = Gravity.CENTER;
-            lifeImg.setLayoutParams(lp);
-            //lifeImg.setAdjustViewBounds(true);
-            localPlayerLivesLayout.addView(lifeImg);
-        }
         // Prepare an animation object for when we loose a life
         fadeOutAnimation = new AlphaAnimation(1, 0);
         fadeOutAnimation.setDuration(MESSAGE_DURATION_MS / 6);
@@ -289,26 +268,18 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
 
         quizPool = new QuizPool(this);
 
-        if (isMultiPlayerMode) {
-            connectionsClient = Nearby.getConnectionsClient(this);
-            questionText.setText(R.string.waiting_for_players);
-            answersLayout.removeAllViews();
-            if (isTaskMaster) {
-                // Note: Advertising may fail. To keep this demo simple, we don't handle failures.
-                connectionsClient.startAdvertising(me.getName(), getPackageName(), connectionLifecycleCallback, new AdvertisingOptions(STRATEGY));
-                if (useFakeNetworkPlayers) {
-                    handler.postDelayed(doAddFakePlayer, 1000);
-                }
-            } else {
-                // Note: Discovery may fail. To keep this demo simple, we don't handle failures.
-                connectionsClient.startDiscovery(getPackageName(), endpointDiscoveryCallback, new DiscoveryOptions(STRATEGY));
+        connectionsClient = Nearby.getConnectionsClient(this);
+        questionText.setText(R.string.waiting_for_players);
+        answersLayout.removeAllViews();
+        if (isTaskMaster) {
+            // Note: Advertising may fail. To keep this demo simple, we don't handle failures.
+            connectionsClient.startAdvertising(me.getName(), getPackageName(), connectionLifecycleCallback, new AdvertisingOptions(STRATEGY));
+            if (useFakeNetworkPlayers) {
+                handler.postDelayed(doAddFakePlayer, 1000);
             }
         } else {
-            // Single-player mode: play against all characters (except ours)
-            for (Character c : CharacterPool.charactersList) {
-                addPlayer(c.getName(this), c.getName(this));
-            }
-            startGame();
+            // Note: Discovery may fail. To keep this demo simple, we don't handle failures.
+            connectionsClient.startDiscovery(getPackageName(), endpointDiscoveryCallback, new DiscoveryOptions(STRATEGY));
         }
     }
 
@@ -316,10 +287,8 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
     protected void onStart() {
         super.onStart();
         Log.d(TAG, "onStart");
-        if (isMultiPlayerMode) {
-            if (!hasPermissions(this, REQUIRED_PERMISSIONS)) {
-                ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, REQUEST_CODE_REQUIRED_PERMISSIONS);
-            }
+        if (!hasPermissions(this, REQUIRED_PERMISSIONS)) {
+            ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, REQUEST_CODE_REQUIRED_PERMISSIONS);
         }
         // Background music
         mMusic = MediaPlayer.create(this, R.raw.fight2);
@@ -371,11 +340,11 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
     private void updateOtherPlayersUi() {
         int index = 0;
         for (Player player : otherPlayers) {
-            // Container for player icon + name + 3 lives
+            // Container for player icon + name + health
             LinearLayout playerAndLivesContainer = (LinearLayout) otherPlayersLayout.getChildAt(index++);
             if (playerAndLivesContainer == null) {
                 playerAndLivesContainer = new LinearLayout(this);
-                // Vertical, because we want the player on top of the lives
+                // Vertical, because we want the player on top of the name and health
                 playerAndLivesContainer.setOrientation(LinearLayout.VERTICAL);
                 playerAndLivesContainer.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.MATCH_PARENT));
                 // Player image
@@ -393,7 +362,7 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
                 int size_in_px = dp2px(75);
                 btn.setLayoutParams(new LinearLayout.LayoutParams(size_in_px, size_in_px));
                 btn.setOnClickListener(this);
-                // Add the player button to the vertical container (on top of the name and lives)
+                // Add the player button to the vertical container (on top of the name and health)
                 playerAndLivesContainer.addView(btn);
 
                 // Name
@@ -403,24 +372,14 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
                 nameTextView.setGravity(Gravity.CENTER_HORIZONTAL);
                 playerAndLivesContainer.addView(nameTextView);
 
-                // Sub-Container for 3 lives (row)
-                LinearLayout livesContainer = new LinearLayout(this);
-                // Horizontal, because we want the hearts lined-up side-by-side
-                livesContainer.setOrientation(LinearLayout.HORIZONTAL);
+                ProgressBar healthBar = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
                 // Center horizontally based on parent container width
-                livesContainer.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 20));
-                livesContainer.setGravity(Gravity.CENTER);
-                for (int i = 0; i < player.getHealth(); i++) {
-                    ImageView lifeImg = new ImageView(this);
-                    lifeImg.setImageResource(R.drawable.heart);
-                    lifeImg.setLayoutParams(new LinearLayout.LayoutParams(20, 20));
-                    lifeImg.setAdjustViewBounds(true);
-                    livesContainer.addView(lifeImg);
-                }
+                healthBar.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+                healthBar.setProgress(player.getHealth());
                 // Add the lives row to the vertical container (under the player icon)
-                playerAndLivesContainer.addView(livesContainer);
+                playerAndLivesContainer.addView(healthBar);
 
-                // Finally, add the player and its lives to the game layout.
+                // Finally, add to the game layout.
                 otherPlayersLayout.addView(playerAndLivesContainer);
                 if (otherPlayers.size() == 1) {
                     buttonTaskMaster.setVisibility(View.VISIBLE);
@@ -440,22 +399,38 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
                 if (nameTextView.getText() != player.getName()) {
                     nameTextView.setText(player.getName());
                 }
-                // Lives
-                LinearLayout livesContainer = (LinearLayout) playerAndLivesContainer.getChildAt(2);
-                if (livesContainer.getChildCount() != player.getHealth()) {
-                    livesContainer.removeAllViews();
-                    for (int i = 0; i < player.getHealth(); i++) {
-                        ImageView lifeImg = new ImageView(this);
-                        lifeImg.setImageResource(R.drawable.heart);
-                        lifeImg.setLayoutParams(new LinearLayout.LayoutParams(20, 20));
-                        lifeImg.setAdjustViewBounds(true);
-                        livesContainer.addView(lifeImg);
+                // Health
+                ProgressBar healthBar = (ProgressBar) playerAndLivesContainer.getChildAt(2);
+                if (healthBar.getProgress() != player.getHealth()) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        healthBar.setProgress(player.getHealth(), true);
+                    } else {
+                        healthBar.setProgress(player.getHealth());
                     }
                 }
             }
         }
         while (otherPlayersLayout.getChildCount() > otherPlayers.size()) {
             otherPlayersLayout.removeViewAt(otherPlayersLayout.getChildCount() - 1);
+        }
+    }
+
+    private void updateLocalPlayerUi() {
+        // Set our character image
+        AnimationDrawable animationDrawable = me.getAnimation();
+        if (localPlayerThumb.getDrawable() != animationDrawable) {
+            localPlayerThumb.setImageDrawable(animationDrawable);
+            animationDrawable.start();
+        }
+        if (!textViewLocalPlayer.getText().equals(me.getName())) {
+            textViewLocalPlayer.setText(me.getName());
+        }
+        if (localPlayerHealth.getProgress() != me.getHealth()) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                localPlayerHealth.setProgress(me.getHealth(), true);
+            } else {
+                localPlayerHealth.setProgress(me.getHealth());
+            }
         }
     }
 
@@ -594,6 +569,64 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    public void buttonHealClicked(View view) {
+        buttonHeal.setEnabled(false);
+        buttonAttack.setEnabled(false);
+        buttonDefend.setEnabled(false);
+        me.setCombatMode(Player.COMBAT_MODE_HEAL);
+        updateLocalPlayerUi();
+        sendPlayerDetails(me);
+        int cooldown = me.getCharacter().getRecovery() * 1000;
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (me.getHealth() == 0) {
+                    return;
+                }
+                me.setCombatMode(Player.COMBAT_MODE_NONE);
+                updateLocalPlayerUi();
+                sendPlayerDetails(me);
+                buttonHeal.setEnabled(true);
+                buttonAttack.setEnabled(true);
+                buttonDefend.setEnabled(true);
+            }
+        }, cooldown);
+    }
+
+    public void buttonDefendClicked(View view) {
+        buttonHeal.setEnabled(false);
+        buttonAttack.setEnabled(false);
+        buttonDefend.setEnabled(false);
+        me.setCombatMode(Player.COMBAT_MODE_DEFEND);
+        updateLocalPlayerUi();
+        sendPlayerDetails(me);
+        int cooldown = me.getCharacter().getRecovery() * 1000;
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (me.getHealth() == 0) {
+                    return;
+                }
+                me.setCombatMode(Player.COMBAT_MODE_NONE);
+                updateLocalPlayerUi();
+                sendPlayerDetails(me);
+                buttonHeal.setEnabled(true);
+                buttonAttack.setEnabled(true);
+                buttonDefend.setEnabled(true);
+            }
+        }, cooldown);
+    }
+
+    public void buttonAttackClicked(View view) {
+        buttonHeal.setEnabled(false);
+        buttonAttack.setEnabled(false);
+        buttonDefend.setEnabled(false);
+        me.setCombatMode(Player.COMBAT_MODE_ATTACK);
+        enablePlayersButtons(true);
+        updateLocalPlayerUi();
+        sendPlayerDetails(me);
+    }
+
     /**
      * Change the status of the other players buttons (for choosing who to attack)
      * <p>
@@ -635,8 +668,7 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
             me.setHealth(me.getHealth() - 1);
 
             // Animate the heart
-            fadingLifeImg = (ImageView) localPlayerLivesLayout.getChildAt(me.getHealth());
-            fadingLifeImg.startAnimation(fadeOutAnimation);
+            localPlayerHealth.startAnimation(fadeOutAnimation);
 
             // Animate the characters (hurt or death)
             LinearLayout attackerContainer = (LinearLayout) otherPlayersLayout.getChildAt(attacker_index);
@@ -881,9 +913,6 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void announceDamage() {
-        fadingLifeImg.setVisibility(View.GONE);
-        fadingLifeImg.clearAnimation();
-        localPlayerLivesLayout.removeView(fadingLifeImg);
         if (me.getHealth() == 0) {
             questionText.setText(R.string.game_over);
             handler.postDelayed(new Runnable() {
@@ -893,9 +922,6 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
                 }
             }, MESSAGE_DURATION_MS);
         } else {
-            String msg_without_lives = getString(R.string.game_not_over);
-            String msg_with_lives = String.format(msg_without_lives, me.getHealth());
-            questionText.setText(msg_with_lives);
             handler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
@@ -916,25 +942,20 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
         Player player = (Player) v.getTag(R.id.id_player);
         if (player != null) {
             enablePlayersButtons(false);
-            // Check which answer correspond that button.
-            victim = player;
-            victim.setHealth(victim.getHealth() - 1);
-            // Find the heart to animate
-            victim_container = (LinearLayout) v.getParent();
-            LinearLayout livesContainer = (LinearLayout) victim_container.getChildAt(1);
-            // The image we want is at the end of the row
-            fadingLifeImg = (ImageView) livesContainer.getChildAt(livesContainer.getChildCount() - 1);
-            fadingLifeImg.startAnimation(fadeOutAnimation);
-            String msg_without_player = getString(R.string.do_attack);
-            String msg_with_player = String.format(msg_without_player, victim.getName());
-            questionText.setText(msg_with_player);
-            ImageView victim_image = (ImageView) victim_container.getChildAt(0);
-            zoomImageFromThumb(victim_image, victim, new Runnable() {
-                @Override
-                public void run() {
-                    attackOtherPlayer();
-                }
-            }, true);
+            if (isTaskMaster) {
+                me.attack(player);
+                // TODO startAttackAnimation(player);
+                sendPlayerDetails(player);
+            } else {
+                GameMessage msg = new GameMessage();
+                msg.setType(GameMessage.GAME_MESSAGE_TYPE_ATTACK);
+                msg.attackInfo.victim = player.getName();
+                broadcastMessage(msg);
+                // TODO startAttackAnimation(player);
+            }
+            buttonHeal.setEnabled(true);
+            buttonAttack.setEnabled(true);
+            buttonDefend.setEnabled(true);
             return;
         }
 
@@ -960,9 +981,7 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
                 v.setBackgroundColor(ColorUtils.setAlphaComponent(Color.RED, 150));
             }
 
-            if (isMultiPlayerMode && !isTaskMaster) {
-                // Do nothing, just wait for task master to send a new question
-            } else {
+            if (isTaskMaster) {
                 // Wait for all players to answer, then send a new question
                 handler.post(doCheckAllPlayersAnswered);
             }
@@ -973,11 +992,6 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void attackOtherPlayer() {
-        // Stop the animation and remove the fading life icon from it's container
-        fadingLifeImg.setVisibility(View.GONE);
-        fadingLifeImg.clearAnimation();
-        LinearLayout livesContainer = (LinearLayout) fadingLifeImg.getParent();
-        livesContainer.removeView(fadingLifeImg);
         if (victim.getHealth() == 0) {
             String msg_without_victim = getString(R.string.attack_killed);
             String msg_with_victim = String.format(msg_without_victim, victim.getName());
@@ -1045,21 +1059,21 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
         }
         switch (msg.getType()) {
             case GameMessage.GAME_MESSAGE_TYPE_PLAYER_INFO:
-                if (isTaskMaster && mPendingPlayerInfo.contains(endpointId)) {
-                    mPendingPlayerInfo.remove(endpointId);
+                // Check if it's the first player info
+                Player player = getPlayerByName(msg.playerInfo.name);
+                if (player == null) {
                     addPlayer(msg.playerInfo.character, msg.playerInfo.name);
                 }
 
-                for (Player player : otherPlayers) {
-                    if (player.getName().equals(msg.playerInfo.name)) {
-                        player.setHealth(msg.playerInfo.health);
-                        break;
-                    }
+                // Don't listen to what other players think their health is. Only taskmaster knows the truth
+                if (!isTaskMaster) {
+                    player.setHealth(msg.playerInfo.health);
                 }
+                player.setCombatMode(msg.playerInfo.battle);
                 updateOtherPlayersUi();
 
                 if (isTaskMaster) {
-                    // Forward the message to the other players
+                    // Forward the message to the other players (except the sender)
                     for (String recipient : mEstablishedConnections.keySet()) {
                         if (!endpointId.equals(recipient)) {
                             sendMessage(recipient, msg);
@@ -1067,9 +1081,46 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
                     }
                 }
                 break;
+            case GameMessage.GAME_MESSAGE_TYPE_ATTACK:
+                if (!isTaskMaster) {
+                    Log.e(TAG, "Only taskmaster receives attack requests");
+                    return;
+                }
+                Player attacker = getPlayerByEndpoint(endpointId);
+                Player victim = getPlayerByName(msg.attackInfo.victim);
+                if (attacker == null || victim == null) {
+                    return;
+                }
+                attacker.attack(victim);
+                sendPlayerDetails(victim);
+                break;
             default:
                 Log.wtf(TAG, "Unhandled game message type: " + msg.getType());
         }
+    }
+
+    private Player getPlayerByEndpoint(String endpointId) {
+        if (me.getEndpointId().equals(endpointId)) {
+            return me;
+        }
+        for (Player player: otherPlayers) {
+            if (player.getEndpointId().equals(endpointId)) {
+                return player;
+            }
+        }
+        return null;
+    }
+
+    private Player getPlayerByName(String name) {
+        if (me.getName().equals(name)) {
+            return me;
+        }
+        for (Player player: otherPlayers) {
+            if (player.getName().equals(name)) {
+                return player;
+            }
+        }
+        return null;
     }
 
     private void broadcastMessage(GameMessage msg) {
@@ -1082,12 +1133,13 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
         connectionsClient.sendPayload(endpointId, Payload.fromBytes(msg.toBytes()));
     }
 
-    private void sendPlayerDetails() {
+    private void sendPlayerDetails(Player player) {
         GameMessage msg = new GameMessage();
         msg.setType(GameMessage.GAME_MESSAGE_TYPE_PLAYER_INFO);
-        msg.playerInfo.name = me.getName();
-        msg.playerInfo.character = me.getCharacterName();
-        msg.playerInfo.health = me.getHealth();
+        msg.playerInfo.name = player.getName();
+        msg.playerInfo.character = player.getCharacterName();
+        msg.playerInfo.health = player.getHealth();
+        msg.playerInfo.battle = player.getCombatMode();
         broadcastMessage(msg);
     }
 
@@ -1131,10 +1183,8 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
         if (result.getStatus().isSuccess()) {
             Log.i(TAG, "onConnectionResult: connection successful");
             mEstablishedConnections.put(endpointId, mPendingConnections.remove(endpointId));
-            if (isTaskMaster) {
-                mPendingPlayerInfo.add(endpointId);
-            } else {
-                sendPlayerDetails();
+            if (!isTaskMaster) {
+                sendPlayerDetails(me);
             }
         } else {
             Log.i(TAG, "onConnectionResult: connection failed");
@@ -1152,8 +1202,12 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
                 victim_container = (LinearLayout) otherPlayersLayout.getChildAt(i);
                 ImageButton imageButton = (ImageButton) victim_container.getChildAt(0);
                 imageButton.setImageResource(player.getCharacter().getDeadImageId());
-                LinearLayout livesContainer = (LinearLayout) victim_container.getChildAt(1);
-                livesContainer.removeAllViews();
+                ProgressBar healthBar = (ProgressBar) victim_container.getChildAt(2);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    healthBar.setProgress(0, true);
+                } else {
+                    healthBar.setProgress(0);
+                }
                 handler.postDelayed(new Runnable() {
                     @Override
                     public void run() {

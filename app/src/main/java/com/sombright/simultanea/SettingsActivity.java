@@ -22,23 +22,16 @@ public class SettingsActivity extends AppCompatActivity implements CompoundButto
         mPrefs = new PreferencesProxy(this);
 
         // Restore preferences
-        boolean multiPlayerMode = mPrefs.isMultiPlayerMode();
         boolean multiPlayerMaster = mPrefs.isMultiPlayerMaster();
         String multiPlayerAlias = mPrefs.getMultiPlayerAlias();
 
         // Modify UI to show the current values
-        Switch multiPlayerModeSwitch = findViewById(R.id.multiPlayerModeSwitch);
-        multiPlayerModeSwitch.setChecked(multiPlayerMode);
-        multiPlayerModeSwitch.setOnCheckedChangeListener(this);
-
         mMultiPlayerMasterView = findViewById(R.id.multiPlayerMasterSwitch);
         mMultiPlayerMasterView.setChecked(multiPlayerMaster);
-        mMultiPlayerMasterView.setEnabled(multiPlayerMode);
         mMultiPlayerMasterView.setOnCheckedChangeListener(this);
 
         mMultiPlayerAliasView = findViewById(R.id.multiPlayerAlias);
         mMultiPlayerAliasView.setText(multiPlayerAlias);
-        mMultiPlayerAliasView.setEnabled(multiPlayerMode);
         mMultiPlayerAliasView.setOnEditorActionListener(this);
     }
 
@@ -48,11 +41,6 @@ public class SettingsActivity extends AppCompatActivity implements CompoundButto
     @Override
     public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
         switch (compoundButton.getId()) {
-            case R.id.multiPlayerModeSwitch:
-                mPrefs.setMultiplayerMode(b);
-                mMultiPlayerAliasView.setEnabled(b);
-                mMultiPlayerMasterView.setEnabled(b);
-                break;
             case R.id.multiPlayerMasterSwitch:
                 mPrefs.setMultiplayerMaster(b);
                 break;

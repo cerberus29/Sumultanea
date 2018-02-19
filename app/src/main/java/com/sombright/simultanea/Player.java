@@ -5,8 +5,15 @@ import android.graphics.drawable.AnimationDrawable;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
+import static java.lang.Math.max;
+import static java.lang.Math.min;
+
 public class Player {
     private static final String TAG = "Player";
+    static final int COMBAT_MODE_NONE = 0;
+    static final int COMBAT_MODE_ATTACK = 1;
+    static final int COMBAT_MODE_DEFEND = 2;
+    static final int COMBAT_MODE_HEAL = 3;
     private final Context mContext;
     private String mEndpointId;
     private String mName;
@@ -14,11 +21,13 @@ public class Player {
     private AnimationDrawable mAnimation;
     private int mHealth;
     private boolean mAnswered;
+    private int mCombatMode;
 
     Player(Context context) {
         mContext = context;
-        mHealth = 3;
+        mHealth = 100;
         mAnswered = false;
+        mCombatMode = COMBAT_MODE_NONE;
     }
 
     public String getEndpointId() {
@@ -79,5 +88,34 @@ public class Player {
             mAnimation = (AnimationDrawable) ContextCompat.getDrawable(mContext, mCharacter.getImageResource());
         }
         return mAnimation;
+    }
+
+    int getCombatMode() {
+        return mCombatMode;
+    }
+
+    void setCombatMode(int mode) {
+        switch (mode) {
+            case COMBAT_MODE_ATTACK:
+                mCombatMode = mode;
+                break;
+            case COMBAT_MODE_DEFEND:
+                mCombatMode = mode;
+                break;
+            case COMBAT_MODE_HEAL:
+                mCombatMode = mode;
+                mHealth = min(mHealth + mCharacter.getHealth(), 100);
+                break;
+            default:
+                mCombatMode = COMBAT_MODE_NONE;
+        }
+    }
+
+    void attack(Player opponent) {
+        int damage = mCharacter.getAttack() - opponent.getCharacter().getDefense();
+        if (opponent.getCombatMode() == COMBAT_MODE_DEFEND) {
+            damage = damage / 2;
+        }
+        opponent.setHealth(max(0, opponent.getHealth() - damage));
     }
 }
