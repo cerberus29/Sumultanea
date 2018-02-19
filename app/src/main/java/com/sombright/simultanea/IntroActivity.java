@@ -1,12 +1,14 @@
-package com.example.cj.sumultanea;
+package com.sombright.simultanea;
 
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.VideoView;
 
-public class intro extends AppCompatActivity implements MediaPlayer.OnCompletionListener {
+public class IntroActivity extends AppCompatActivity implements MediaPlayer.OnCompletionListener {
+    private static final String TAG = "IntroActivity";
     private static final int videoSequence[] = {
             R.raw.load,
             R.raw.pyre,
@@ -20,13 +22,44 @@ public class intro extends AppCompatActivity implements MediaPlayer.OnCompletion
 
         setContentView(R.layout.activity_intro);
         videoView = findViewById(R.id.videoView);
+        videoCounter = 0;
+    }
+
+    @Override
+    protected void onStart() {
+        Log.d(TAG, "onStart");
+        super.onStart();
+        startNextVideo();
+    }
+
+    @Override
+    protected void onRestart() {
+        Log.d(TAG, "onReStart");
+        videoCounter = 0;
+        super.onRestart();
     }
 
     @Override
     protected void onResume() {
+        Log.d(TAG, "onResume");
+        if (!videoView.isPlaying()) {
+            videoView.resume();
+        }
         super.onResume();
-        videoCounter = 0;
-        startNextVideo();
+    }
+
+    @Override
+    protected void onStop() {
+        Log.d(TAG, "onStop");
+        videoView.stopPlayback();
+        super.onStop();
+    }
+
+    @Override
+    protected void onPause() {
+        Log.d(TAG, "onPause");
+        videoView.suspend();
+        super.onPause();
     }
 
     private void startNextVideo() {

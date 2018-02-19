@@ -1,4 +1,4 @@
-package com.example.cj.sumultanea;
+package com.sombright.simultanea;
 
 import android.content.Context;
 import android.content.pm.PackageInfo;

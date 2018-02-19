@@ -1,7 +1,7 @@
-package com.example.cj.sumultanea;
+package com.sombright.simultanea;
 
-public class CharacterPool {
-    public static final Character[] charactersList = {
+class CharacterPool {
+    static final Character[] charactersList = {
             new Character(
                     R.string.bluepanda_name,
                     R.drawable.bluepanda,
@@ -34,4 +34,8 @@ public class CharacterPool {
                     R.string.Warrior_Lore,
                     100, 5, 10, 13),
     };
+    private static final int DEFAULT_CHARACTER_INDEX = 0;
+    static Character getDefaultCharacter() {
+        return charactersList[DEFAULT_CHARACTER_INDEX];
+    }
 }

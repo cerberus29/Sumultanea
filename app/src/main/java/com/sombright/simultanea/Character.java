@@ -1,6 +1,8 @@
-package com.example.cj.sumultanea;
+package com.sombright.simultanea;
 
-public class Character {
+import android.content.Context;
+
+class Character {
     private final int mStringResourceName;
     private final int mImageResource;
     private final int mImageResourceHurt;
@@ -33,6 +35,16 @@ public class Character {
     int getStringResourceName() {
         return mStringResourceName;
     }
+
+    private static String getCharacterName(Context context, Character character) {
+        int resId = character.getStringResourceName();
+        return context.getString(resId);
+    }
+
+    public String getName(Context context) {
+        return getCharacterName(context, this);
+    }
+
     int getImageResource() {
         return mImageResource;
     }

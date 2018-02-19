@@ -1,12 +1,9 @@
-package com.example.cj.sumultanea;
+package com.sombright.simultanea;
 
-import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
-import static com.example.cj.sumultanea.R.styleable.View;
-
-public class PROFILE extends AppCompatActivity {
+public class ProfileActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

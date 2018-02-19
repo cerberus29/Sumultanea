@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/skyisland"
-    tools:context="com.example.cj.sumultanea.SettingsActivity">
+    tools:context="com.sombright.simultanea.SettingsActivity">
 
     <Switch
         android:id="@+id/multiPlayerModeSwitch"

@@ -1,4 +1,4 @@
-package com.example.cj.sumultanea;
+package com.sombright.simultanea;
 
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
@@ -9,10 +9,8 @@ import android.widget.ImageView;
 import android.widget.TabHost;
 import android.widget.TextView;
 
-import static com.example.cj.sumultanea.simultanea.DEFAULT_CHARACTER;
-
 public class CharacterDetailsActivity extends AppCompatActivity {
-    private int mCharacterNum = DEFAULT_CHARACTER;
+    private int mCharacterNum;
     private static final String TAG_STATS = "stats";
     private static final String TAG_LORE = "lore";
 
@@ -34,7 +32,7 @@ public class CharacterDetailsActivity extends AppCompatActivity {
 
         // Retrieve the character selection sent by the main activity as part of the "intent"
         Intent intent = getIntent();
-        mCharacterNum = intent.getIntExtra(simultanea.CHARACTER_KEY, mCharacterNum);
+        mCharacterNum = intent.getIntExtra("index", 0);
         Character character = CharacterPool.charactersList[mCharacterNum];
 
         ImageView imageViewCharacter = findViewById(R.id.imageViewCharacter);
@@ -49,14 +47,13 @@ public class CharacterDetailsActivity extends AppCompatActivity {
         TextView textViewLore = findViewById(R.id.textViewLore);
         textViewLore.setText(character.getStringResourceLore());
         textViewLore.setMovementMethod(new ScrollingMovementMethod());
-
     }
 
     public void onClickPick(View v) {
         // Return the character selection back to the main activity
-        Intent resultIntent = new Intent();
-        resultIntent.putExtra(simultanea.CHARACTER_KEY, mCharacterNum);
-        setResult(RESULT_OK, resultIntent);
+        PreferencesProxy prefs = new PreferencesProxy(this);
+        String name = getString(CharacterPool.charactersList[mCharacterNum].getStringResourceName());
+        prefs.setCharacter(name);
         finish();
     }
 }
