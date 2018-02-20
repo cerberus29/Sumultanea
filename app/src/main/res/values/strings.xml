@@ -31,4 +31,5 @@
     <string name="defend">Defend</string>
     <string name="attack">Attack</string>
     <string name="heal">Heal</string>
+    <string name="waiting_for_master">Waiting for taskmaster</string>
 </resources>

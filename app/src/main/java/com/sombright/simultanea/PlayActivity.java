@@ -237,6 +237,8 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
         buttonBattle = findViewById(R.id.buttonBattle);
         buttonStartGame = findViewById(R.id.buttonStartGame);
         buttonAddFakePlayer = findViewById(R.id.buttonAddFakePlayer);
+        buttonStartGame.setVisibility(isTaskMaster?View.VISIBLE:View.GONE);
+        buttonAddFakePlayer.setVisibility(isTaskMaster?View.VISIBLE:View.GONE);
 
         buttonHeal = findViewById(R.id.buttonHeal);
         buttonAttack = findViewById(R.id.buttonAttack);
@@ -264,7 +266,7 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
         quizPool = new QuizPool(this);
 
         connectionsClient = Nearby.getConnectionsClient(this);
-        questionText.setText(R.string.waiting_for_players);
+        questionText.setText(isTaskMaster?R.string.waiting_for_players:R.string.waiting_for_master);
         answersLayout.removeAllViews();
         if (isTaskMaster) {
             // Note: Advertising may fail. To keep this demo simple, we don't handle failures.
@@ -331,11 +333,12 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
                 }
             }
         } while (player != null);
-        addPlayer(characterName, playerName);
+        addPlayer(playerName, characterName, playerName);
     }
 
-    private void addPlayer(String character, String name) {
+    private void addPlayer(String endpointId, String character, String name) {
         Player player = new Player(this);
+        player.setEndpointId(endpointId);
         player.setCharacter(character);
         player.setName(name);
         otherPlayers.add(player);
@@ -390,11 +393,13 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
 
                 // Finally, add to the game layout.
                 otherPlayersLayout.addView(playerAndLivesContainer);
-                if (otherPlayers.size() == 1) {
-                    buttonStartGame.setEnabled(true);
-                }
-                if (otherPlayers.size() == MAX_PLAYERS) {
-                    buttonAddFakePlayer.setEnabled(false);
+                if (isTaskMaster) {
+                    if (otherPlayers.size() == 1) {
+                        buttonStartGame.setEnabled(true);
+                    }
+                    if (otherPlayers.size() == MAX_PLAYERS) {
+                        buttonAddFakePlayer.setEnabled(false);
+                    }
                 }
             } else {
                 ImageButton btn = (ImageButton) playerAndLivesContainer.getChildAt(0);
@@ -586,7 +591,7 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
         buttonDefend.setEnabled(false);
         me.setCombatMode(Player.COMBAT_MODE_HEAL);
         updateLocalPlayerUi();
-        sendPlayerDetails(me);
+        broadcastPlayerDetails(me);
         int cooldown = me.getCharacter().getRecovery() * 1000;
         handler.postDelayed(new Runnable() {
             @Override
@@ -596,7 +601,7 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 me.setCombatMode(Player.COMBAT_MODE_NONE);
                 updateLocalPlayerUi();
-                sendPlayerDetails(me);
+                broadcastPlayerDetails(me);
                 buttonHeal.setEnabled(true);
                 buttonAttack.setEnabled(true);
                 buttonDefend.setEnabled(true);
@@ -610,7 +615,7 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
         buttonDefend.setEnabled(false);
         me.setCombatMode(Player.COMBAT_MODE_DEFEND);
         updateLocalPlayerUi();
-        sendPlayerDetails(me);
+        broadcastPlayerDetails(me);
         int cooldown = me.getCharacter().getRecovery() * 1000;
         handler.postDelayed(new Runnable() {
             @Override
@@ -620,7 +625,7 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 me.setCombatMode(Player.COMBAT_MODE_NONE);
                 updateLocalPlayerUi();
-                sendPlayerDetails(me);
+                broadcastPlayerDetails(me);
                 buttonHeal.setEnabled(true);
                 buttonAttack.setEnabled(true);
                 buttonDefend.setEnabled(true);
@@ -635,7 +640,7 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
         me.setCombatMode(Player.COMBAT_MODE_ATTACK);
         enablePlayersButtons(true);
         updateLocalPlayerUi();
-        sendPlayerDetails(me);
+        broadcastPlayerDetails(me);
     }
 
     /**
@@ -956,7 +961,7 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
             if (isTaskMaster) {
                 me.attack(player);
                 // TODO startAttackAnimation(player);
-                sendPlayerDetails(player);
+                broadcastPlayerDetails(player);
             } else {
                 GameMessage msg = new GameMessage();
                 msg.setType(GameMessage.GAME_MESSAGE_TYPE_ATTACK);
@@ -1070,37 +1075,7 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
         }
         switch (msg.getType()) {
             case GameMessage.GAME_MESSAGE_TYPE_PLAYER_INFO:
-                // The first time we receive a player's info, we add it to the UI
-                Player player = getPlayerByName(msg.playerInfo.name);
-                if (player == null) {
-                    // Check if we already reached the maximum number of players
-                    if (otherPlayers.size() == MAX_PLAYERS) {
-                        connectionsClient.disconnectFromEndpoint(endpointId);
-                        if (isTaskMaster)
-                            connectionsClient.stopAdvertising();
-                        else
-                            connectionsClient.stopDiscovery();
-                        return;
-                    }
-                    addPlayer(msg.playerInfo.character, msg.playerInfo.name);
-                    player = getPlayerByName(msg.playerInfo.name);
-                }
-
-                // Don't listen to what other players think their health is. Only taskmaster knows the truth
-                if (!isTaskMaster) {
-                    player.setHealth(msg.playerInfo.health);
-                }
-                player.setCombatMode(msg.playerInfo.battle);
-                updateOtherPlayersUi();
-
-                if (isTaskMaster) {
-                    // Forward the message to the other players (except the sender)
-                    for (String recipient : mEstablishedConnections.keySet()) {
-                        if (!endpointId.equals(recipient)) {
-                            sendMessage(recipient, msg);
-                        }
-                    }
-                }
+                onReceivePlayerInfo(endpointId, msg);
                 break;
             case GameMessage.GAME_MESSAGE_TYPE_ATTACK:
                 if (!isTaskMaster) {
@@ -1113,10 +1088,55 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
                     return;
                 }
                 attacker.attack(victim);
-                sendPlayerDetails(victim);
+                broadcastPlayerDetails(victim);
                 break;
             default:
                 Log.wtf(TAG, "Unhandled game message type: " + msg.getType());
+        }
+    }
+
+    private void onReceivePlayerInfo(String endpointId, GameMessage msg) {
+        // The first time we receive a player's info, we add it to the UI
+        boolean newPlayer = false;
+        Player player = getPlayerByName(msg.playerInfo.name);
+        if (player == null) {
+            // Check if we already reached the maximum number of players
+            if (otherPlayers.size() == MAX_PLAYERS) {
+                connectionsClient.disconnectFromEndpoint(endpointId);
+                if (isTaskMaster)
+                    connectionsClient.stopAdvertising();
+                else
+                    connectionsClient.stopDiscovery();
+                return;
+            }
+            newPlayer = true;
+            addPlayer(endpointId, msg.playerInfo.character, msg.playerInfo.name);
+            player = getPlayerByName(msg.playerInfo.name);
+        }
+
+        // Don't listen to what other players think their health is. Only taskmaster knows the truth
+        if (!isTaskMaster) {
+            player.setHealth(msg.playerInfo.health);
+        }
+        player.setCombatMode(msg.playerInfo.battle);
+        updateOtherPlayersUi();
+
+        if (isTaskMaster) {
+            if (newPlayer) {
+                // Inform the newly-added player of the other current players
+                sendPlayerDetails(endpointId, me);
+                for (Player other: otherPlayers) {
+                    if (!endpointId.equals(other.getEndpointId())) {
+                        sendPlayerDetails(endpointId, other);
+                    }
+                }
+            }
+            // Forward the message to the other players (except the sender)
+            for (String recipient : mEstablishedConnections.keySet()) {
+                if (!endpointId.equals(recipient)) {
+                    sendMessage(recipient, msg);
+                }
+            }
         }
     }
 
@@ -1154,14 +1174,20 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
         connectionsClient.sendPayload(endpointId, Payload.fromBytes(msg.toBytes()));
     }
 
-    private void sendPlayerDetails(Player player) {
+    private void broadcastPlayerDetails(Player player) {
+        for (String endpointId : mEstablishedConnections.keySet()) {
+            sendPlayerDetails(endpointId, player);
+        }
+    }
+
+    private void sendPlayerDetails(String endpointId, Player player) {
         GameMessage msg = new GameMessage();
         msg.setType(GameMessage.GAME_MESSAGE_TYPE_PLAYER_INFO);
         msg.playerInfo.name = player.getName();
         msg.playerInfo.character = player.getCharacterName();
         msg.playerInfo.health = player.getHealth();
         msg.playerInfo.battle = player.getCombatMode();
-        broadcastMessage(msg);
+        sendMessage(endpointId, msg);
     }
 
     private void cleanupAndDisconnectEndpoint(String endpointId) {
@@ -1220,7 +1246,7 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
             mEstablishedConnections.put(endpointId, mPendingConnections.remove(endpointId));
             // Once the connection is established, we send our player info to the taskmaster
             if (!isTaskMaster) {
-                sendPlayerDetails(me);
+                broadcastPlayerDetails(me);
             }
         } else {
             Log.i(TAG, "onConnectionResult: connection failed");

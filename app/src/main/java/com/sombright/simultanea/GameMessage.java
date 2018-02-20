@@ -67,6 +67,7 @@ class GameMessage {
         int type;
 
         String jsonString = new String(bytes, UTF_8);
+        Log.v(TAG, "<<< jsonString=" + jsonString);
         try {
             JSONObject jsonObject = new JSONObject(jsonString);
             version = jsonObject.getInt(KEY_VERSION);
@@ -108,6 +109,7 @@ class GameMessage {
             default:
                 return null;
         }
+        Log.v(TAG, ">>> jsonString=" + jsonString);
         return jsonString.getBytes(UTF_8);
     }
 
