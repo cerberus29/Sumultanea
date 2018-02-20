@@ -244,6 +244,7 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
 
         localPlayerThumb = findViewById(R.id.imageViewLocalPlayer);
         localPlayerHealth = findViewById(R.id.localPlayerHealth);
+        localPlayerHealth.getProgressDrawable().setColorFilter(Color.RED, android.graphics.PorterDuff.Mode.SRC_IN);
 
         buttonQuestion.setEnabled(false);
         buttonAnswers.setEnabled(false);
@@ -377,8 +378,12 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
                 playerAndLivesContainer.addView(nameTextView);
 
                 ProgressBar healthBar = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
+                healthBar.getProgressDrawable().setColorFilter(Color.RED, android.graphics.PorterDuff.Mode.SRC_IN);
                 // Center horizontally based on parent container width
-                healthBar.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+                LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                size_in_px = dp2px(8);
+                lp.setMargins(size_in_px,0,size_in_px,0);
+                healthBar.setLayoutParams(lp);
                 healthBar.setProgress(player.getHealth());
                 // Add the lives row to the vertical container (under the player icon)
                 playerAndLivesContainer.addView(healthBar);
