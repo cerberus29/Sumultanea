@@ -1083,6 +1083,7 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
                         return;
                     }
                     addPlayer(msg.playerInfo.character, msg.playerInfo.name);
+                    player = getPlayerByName(msg.playerInfo.name);
                 }
 
                 // Don't listen to what other players think their health is. Only taskmaster knows the truth
@@ -1170,31 +1171,45 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
         removePlayer(name);
     }
 
+    // --- A bunch of "Internal" functions used by the connection callbacks ----
+
+    /**
+     * This is called when a device finds the taskmaster
+     * @param endpointId a unique string representing the endpoint found (taskmaster)
+     * @param info (unused)
+     */
     private void onEndpointFoundInternal(String endpointId, DiscoveredEndpointInfo info) {
-        Log.i(TAG, "onEndpointFound: endpoint found, connecting");
+        Log.i(TAG, "Found taskmaster");
+        // Immediately request connection and stop looking
         connectionsClient.requestConnection(me.getName(), endpointId, connectionLifecycleCallback);
+        connectionsClient.stopDiscovery();
     }
 
+    /**
+     * This is called when the device looses the taskmaster
+     * @param endpointId (unused)
+     */
     private void onEndpointLostInternal(String endpointId) {
+        Log.e(TAG, "Lost taskmaster!");
+        finish();
     }
 
     private void onConnectionInitiatedInternal(String endpointId, ConnectionInfo connectionInfo) {
-        if (me.getName().equals(connectionInfo.getEndpointName())) {
-            Log.e(TAG, "This game is too small for both of us " + connectionInfo.getEndpointName());
-            questionText.setText("Somebody is trying to connect with the same name as me " + connectionInfo.getEndpointName());
-            connectionsClient.rejectConnection(endpointId);
-            return;
-        }
-        for (Player player : otherPlayers) {
-            if (player.getName().equals(connectionInfo.getEndpointName())) {
-                Log.e(TAG, "Sorry, we already have a player named " + connectionInfo.getEndpointName());
-                questionText.setText("Somebody is trying to connect with the same name as an existing player " + connectionInfo.getEndpointName());
+        if (isTaskMaster) {
+            if (me.getName().equals(connectionInfo.getEndpointName())) {
+                Log.e(TAG, "This game is too small for both of us " + connectionInfo.getEndpointName());
                 connectionsClient.rejectConnection(endpointId);
                 return;
             }
+            for (Player player : otherPlayers) {
+                if (player.getName().equals(connectionInfo.getEndpointName())) {
+                    Log.e(TAG, "Sorry, we already have a player named " + connectionInfo.getEndpointName());
+                    connectionsClient.rejectConnection(endpointId);
+                    return;
+                }
+            }
         }
         Log.i(TAG, "onConnectionInitiated: accepting connection");
-        questionText.setText("Accepting connection from " + connectionInfo.getEndpointName().toString());
         connectionsClient.acceptConnection(endpointId, payloadCallback);
         mPendingConnections.put(endpointId, connectionInfo.getEndpointName());
     }
@@ -1203,6 +1218,7 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
         if (result.getStatus().isSuccess()) {
             Log.i(TAG, "onConnectionResult: connection successful");
             mEstablishedConnections.put(endpointId, mPendingConnections.remove(endpointId));
+            // Once the connection is established, we send our player info to the taskmaster
             if (!isTaskMaster) {
                 sendPlayerDetails(me);
             }
@@ -1213,29 +1229,32 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void onDisconnectedInternal(String endpointId) {
-        questionText.setText("Disconnected from " + mEstablishedConnections.get(endpointId));
-        Player player;
-        for (int i = 0; i < otherPlayers.size(); i++) {
-            player = otherPlayers.get(i);
-            if (player.getName().equals(mEstablishedConnections.get(endpointId))) {
-                player.setHealth(0);
-                victim_container = (LinearLayout) otherPlayersLayout.getChildAt(i);
-                ImageButton imageButton = (ImageButton) victim_container.getChildAt(0);
-                imageButton.setImageResource(player.getCharacter().getDeadImageId());
-                ProgressBar healthBar = (ProgressBar) victim_container.getChildAt(2);
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                    healthBar.setProgress(0, true);
-                } else {
-                    healthBar.setProgress(0);
-                }
-                handler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        removePlayer(victim.getName());
+        if (isTaskMaster) {
+            Player player;
+            for (int i = 0; i < otherPlayers.size(); i++) {
+                player = otherPlayers.get(i);
+                if (player.getName().equals(mEstablishedConnections.get(endpointId))) {
+                    player.setHealth(0);
+                    victim_container = (LinearLayout) otherPlayersLayout.getChildAt(i);
+                    ImageButton imageButton = (ImageButton) victim_container.getChildAt(0);
+                    imageButton.setImageResource(player.getCharacter().getDeadImageId());
+                    ProgressBar healthBar = (ProgressBar) victim_container.getChildAt(2);
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        healthBar.setProgress(0, true);
+                    } else {
+                        healthBar.setProgress(0);
                     }
-                }, LONG_MESSAGE_DURATION_MS);
-                break;
+                    handler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            removePlayer(victim.getName());
+                        }
+                    }, LONG_MESSAGE_DURATION_MS);
+                    break;
+                }
             }
+        } else {
+            finish();
         }
     }
 
