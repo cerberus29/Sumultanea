@@ -7,9 +7,6 @@ import com.google.gson.Gson;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.UnsupportedEncodingException;
-import java.util.Arrays;
-
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 class GameMessage {

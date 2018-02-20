@@ -23,4 +23,12 @@
     <string name="error_missing_permissions">Cannot start without required permissions</string>
     <string name="multiPlayerMaster">Act as the master</string>
     <string name="waiting_for_players">Waiting for other players...</string>
+    <string name="add_virtual_player">Add Virtual Player</string>
+    <string name="start_game">Start Game</string>
+    <string name="battle">Battle</string>
+    <string name="answers">Answers</string>
+    <string name="question">Question</string>
+    <string name="defend">Defend</string>
+    <string name="attack">Attack</string>
+    <string name="heal">Heal</string>
 </resources>

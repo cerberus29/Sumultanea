@@ -43,15 +43,19 @@
 
     </LinearLayout>
 
-    <LinearLayout
+    <com.google.android.flexbox.FlexboxLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
         android:id="@+id/otherPlayersLayout"
         android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginBottom="32dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="32dp"
-        android:orientation="horizontal"
+        android:layout_marginTop="8dp"
+        app:flexWrap="wrap"
+        app:alignItems="baseline"
+        app:alignContent="flex_start"
         app:layout_constraintBottom_toTopOf="@id/contentsLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -160,7 +164,111 @@
                 android:progress="10" />
 
         </LinearLayout>
-    </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <ImageButton
+                android:layout_width="75dp"
+                android:layout_height="75dp"
+                android:adjustViewBounds="true"
+                android:scaleType="fitStart"
+                app:srcCompat="@drawable/bluepanda" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:text="Name" />
+
+            <ProgressBar
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:progress="100" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <ImageButton
+                android:layout_width="75dp"
+                android:layout_height="75dp"
+                android:adjustViewBounds="true"
+                android:scaleType="fitStart"
+                app:srcCompat="@drawable/duel" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:text="Name" />
+
+            <ProgressBar
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:progress="80" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <ImageButton
+                android:layout_width="75dp"
+                android:layout_height="75dp"
+                android:adjustViewBounds="true"
+                android:scaleType="fitStart"
+                app:srcCompat="@drawable/pump" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:text="Name" />
+
+            <ProgressBar
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:progress="30" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <ImageButton
+                android:layout_width="75dp"
+                android:layout_height="75dp"
+                android:adjustViewBounds="true"
+                android:scaleType="fitStart"
+                app:srcCompat="@drawable/war" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:text="Name" />
+
+            <ProgressBar
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:progress="10" />
+
+        </LinearLayout>
+    </com.google.android.flexbox.FlexboxLayout>
 
     <FrameLayout
         android:id="@+id/contentsLayout"
@@ -228,21 +336,21 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:onClick="buttonHealClicked"
-                android:text="Heal" />
+                android:text="@string/heal" />
 
             <Button
                 android:id="@+id/buttonAttack"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:onClick="buttonAttackClicked"
-                android:text="Attack" />
+                android:text="@string/attack" />
 
             <Button
                 android:id="@+id/buttonDefend"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:onClick="buttonDefendClicked"
-                android:text="Defend" />
+                android:text="@string/defend" />
         </LinearLayout>
     </FrameLayout>
 
@@ -262,29 +370,39 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:onClick="showQuestion"
-            android:text="Question" />
+            android:text="@string/question"
+            android:visibility="gone" />
 
         <Button
             android:id="@+id/buttonAnswers"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:onClick="showAnswers"
-            android:text="Answers" />
+            android:text="@string/answers"
+            android:visibility="gone" />
 
         <Button
             android:id="@+id/buttonBattle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:onClick="showBattleOptions"
-            android:text="Battle" />
+            android:text="@string/battle"
+            android:visibility="gone" />
 
         <Button
-            android:id="@+id/buttonTaskMaster"
+            android:id="@+id/buttonStartGame"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:onClick="taskMasterButtonClicked"
-            android:visibility="gone"
-            android:text="Start the Game" />
+            android:onClick="buttonStartGameClicked"
+            android:text="@string/start_game"
+            android:enabled="false" />
+
+        <Button
+            android:id="@+id/buttonAddFakePlayer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="addFakePlayer"
+            android:text="@string/add_virtual_player" />
     </LinearLayout>
 
     <ImageView

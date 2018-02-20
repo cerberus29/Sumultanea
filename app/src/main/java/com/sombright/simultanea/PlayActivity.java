@@ -37,6 +37,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.flexbox.FlexboxLayout;
 import com.google.android.gms.nearby.Nearby;
 import com.google.android.gms.nearby.connection.AdvertisingOptions;
 import com.google.android.gms.nearby.connection.ConnectionInfo;
@@ -67,8 +68,7 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
 
     private final static int MESSAGE_DURATION_MS = 1500;
     private final static int LONG_MESSAGE_DURATION_MS = 3000;
-    // For debugging
-    private static final boolean useFakeNetworkPlayers = true;
+    private final static int MAX_PLAYERS = 10;
     /*
      * Multiplayer connection code based on the rockpaperscissors example from:
      * https://github.com/googlesamples/android-nearby
@@ -94,24 +94,18 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
     private LinearLayout battleOptionsLayout;
     private Player me;
     private List<Player> otherPlayers = new ArrayList<>();
-    private LinearLayout otherPlayersLayout;
+    private FlexboxLayout otherPlayersLayout;
     private TextView textViewLocalPlayer;
     private ProgressBar localPlayerHealth;
     private ImageView localPlayerThumb;
     private ImageView localPlayerAnimation, otherPlayerAnimation;
-    private LinearLayout controlsLayout;
-    private Button buttonQuestion, buttonAnswers, buttonBattle, buttonTaskMaster;
+    private Button buttonQuestion, buttonAnswers, buttonBattle;
+    private Button buttonStartGame, buttonAddFakePlayer;
     private Button buttonHeal, buttonAttack, buttonDefend;
     private Handler handler = new Handler();
     private MediaPlayer mMusic;
     private Animation fadeOutAnimation;
     private boolean isTaskMaster;
-    private Runnable doAddFakePlayer = new Runnable() {
-        @Override
-        public void run() {
-            addFakePlayer();
-        }
-    };
     private Runnable doCheckAllPlayersAnswered = new Runnable() {
         @Override
         public void run() {
@@ -238,11 +232,11 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
         localPlayerAnimation = findViewById(R.id.localPlayerAnimation);
         otherPlayerAnimation = findViewById(R.id.otherPlayerAnimation);
 
-        controlsLayout = findViewById(R.id.controlsLayout);
         buttonQuestion = findViewById(R.id.buttonQuestion);
         buttonAnswers = findViewById(R.id.buttonAnswers);
         buttonBattle = findViewById(R.id.buttonBattle);
-        buttonTaskMaster = findViewById(R.id.buttonTaskMaster);
+        buttonStartGame = findViewById(R.id.buttonStartGame);
+        buttonAddFakePlayer = findViewById(R.id.buttonAddFakePlayer);
 
         buttonHeal = findViewById(R.id.buttonHeal);
         buttonAttack = findViewById(R.id.buttonAttack);
@@ -274,9 +268,6 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
         if (isTaskMaster) {
             // Note: Advertising may fail. To keep this demo simple, we don't handle failures.
             connectionsClient.startAdvertising(me.getName(), getPackageName(), connectionLifecycleCallback, new AdvertisingOptions(STRATEGY));
-            if (useFakeNetworkPlayers) {
-                handler.postDelayed(doAddFakePlayer, 1000);
-            }
         } else {
             // Note: Discovery may fail. To keep this demo simple, we don't handle failures.
             connectionsClient.startDiscovery(getPackageName(), endpointDiscoveryCallback, new DiscoveryOptions(STRATEGY));
@@ -320,13 +311,26 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
         super.onStop();
     }
 
-    private void addFakePlayer() {
-        int i = otherPlayers.size();
-        String name = CharacterPool.charactersList[i].getName(PlayActivity.this);
-        addPlayer(name, name);
-        if (otherPlayers.size() < CharacterPool.charactersList.length) {
-            handler.postDelayed(doAddFakePlayer, 1000);
-        }
+    public void addFakePlayer(View v) {
+        // Find a unique name
+        String characterName = null, playerName = null;
+        int num = 0; // Add a number when the name already exists
+        Player player = null;
+        do {
+            num++;
+            for (Character character: CharacterPool.charactersList) {
+                characterName = character.getName(PlayActivity.this);
+                playerName = characterName;
+                if (num > 1) {
+                    playerName += " " + num;
+                }
+                player = getPlayerByName(playerName);
+                if (player == null) {
+                    break;
+                }
+            }
+        } while (player != null);
+        addPlayer(characterName, playerName);
     }
 
     private void addPlayer(String character, String name) {
@@ -382,7 +386,10 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
                 // Finally, add to the game layout.
                 otherPlayersLayout.addView(playerAndLivesContainer);
                 if (otherPlayers.size() == 1) {
-                    buttonTaskMaster.setVisibility(View.VISIBLE);
+                    buttonStartGame.setEnabled(true);
+                }
+                if (otherPlayers.size() == MAX_PLAYERS) {
+                    buttonAddFakePlayer.setEnabled(false);
                 }
             } else {
                 ImageButton btn = (ImageButton) playerAndLivesContainer.getChildAt(0);
@@ -440,6 +447,10 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void startGame() {
+        if (isTaskMaster)
+            connectionsClient.stopAdvertising();
+        else
+            connectionsClient.stopDiscovery();
         newQuestion();
         showQuestion(buttonQuestion);
     }
@@ -484,14 +495,6 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
             count++;
         }
         state = STATE_WAITING_FOR_ANSWER;
-        if (useFakeNetworkPlayers) {
-            handler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    fakePlayerAnswer();
-                }
-            }, 1000);
-        }
     }
 
     private void fakePlayerAnswer() {
@@ -558,11 +561,14 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
         buttonBattle.setEnabled(false);
     }
 
-    public void taskMasterButtonClicked(View view) {
+
+    public void buttonStartGameClicked(View view) {
         if (state == STATE_WAITING_FOR_PLAYERS) {
-            buttonTaskMaster.setEnabled(false);
-            buttonTaskMaster.setVisibility(View.GONE);
-            handler.removeCallbacks(doAddFakePlayer);
+            buttonQuestion.setVisibility(View.VISIBLE);
+            buttonAnswers.setVisibility(View.VISIBLE);
+            buttonBattle.setVisibility(View.VISIBLE);
+            buttonStartGame.setVisibility(View.GONE);
+            buttonAddFakePlayer.setVisibility(View.GONE);
             startGame();
         } else {
             Log.d(TAG, "Unhandled task master button click in state " + state);
@@ -1059,9 +1065,18 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
         }
         switch (msg.getType()) {
             case GameMessage.GAME_MESSAGE_TYPE_PLAYER_INFO:
-                // Check if it's the first player info
+                // The first time we receive a player's info, we add it to the UI
                 Player player = getPlayerByName(msg.playerInfo.name);
                 if (player == null) {
+                    // Check if we already reached the maximum number of players
+                    if (otherPlayers.size() == MAX_PLAYERS) {
+                        connectionsClient.disconnectFromEndpoint(endpointId);
+                        if (isTaskMaster)
+                            connectionsClient.stopAdvertising();
+                        else
+                            connectionsClient.stopDiscovery();
+                        return;
+                    }
                     addPlayer(msg.playerInfo.character, msg.playerInfo.name);
                 }
 
