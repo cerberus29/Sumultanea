@@ -470,12 +470,12 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
             QuizPool.Entry entry = quizPool.getQuestion();
             GameMessage msg = new GameMessage();
             msg.setType(GameMessage.GAME_MESSAGE_TYPE_QUESTION);
-            msg.setQuestion(entry);
-            broadcastMessage(msg);
+            msg.questionInfo.entry = entry;
             for (Player player : otherPlayers) {
                 player.setAnswered(false);
             }
-            setQuestion(entry);
+            broadcastMessage(msg);
+            onReceiveQuestion(msg);
         } else {
             Log.wtf(TAG, "Other players should just wait for a new question!");
         }
@@ -509,7 +509,7 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
 
     private void fakePlayerAnswer() {
         for (Player player : otherPlayers) {
-            if (!player.hasAnswered()) {
+            if (player.isFake() && !player.hasAnswered()) {
                 player.setAnswered(true);
             }
         }
@@ -1090,6 +1090,9 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
                 attacker.attack(victim);
                 broadcastPlayerDetails(victim);
                 break;
+            case GameMessage.GAME_MESSAGE_TYPE_QUESTION:
+                onReceiveQuestion(msg);
+                break;
             default:
                 Log.wtf(TAG, "Unhandled game message type: " + msg.getType());
         }
@@ -1140,6 +1143,11 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    private void onReceiveQuestion(GameMessage msg) {
+        QuizPool.Entry entry = msg.questionInfo.entry;
+        setQuestion(entry);
+    }
+
     private Player getPlayerByEndpoint(String endpointId) {
         if (me.getEndpointId().equals(endpointId)) {
             return me;
@@ -1167,6 +1175,25 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
     private void broadcastMessage(GameMessage msg) {
         for (String endpointId : mEstablishedConnections.keySet()) {
             sendMessage(endpointId, msg);
+        }
+        if (isTaskMaster) {
+            switch (msg.getType()) {
+                case GameMessage.GAME_MESSAGE_TYPE_PLAYER_INFO:
+                    break;
+                case GameMessage.GAME_MESSAGE_TYPE_QUESTION:
+                    for (Player player : otherPlayers) {
+                        if (player.isFake()) {
+                            handler.postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    fakePlayerAnswer();
+                                }
+                            }, 3000);
+                            break;
+                        }
+                    }
+                    break;
+            }
         }
     }
 

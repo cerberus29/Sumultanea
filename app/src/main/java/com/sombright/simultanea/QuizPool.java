@@ -157,55 +157,15 @@ class QuizPool {
         return entries;
     }
 
-    public static class Entry implements Parcelable {
+    public static class Entry {
         public final String question;
         public final int type;
         public final List<Answer> answers;
 
-        private Entry(String question, int type, List<Answer> answers) {
+        public Entry(String question, int type, List<Answer> answers) {
             this.question = question;
             this.type = type;
             this.answers = answers;
-        }
-
-        protected Entry(Parcel in) {
-            question = in.readString();
-            type = in.readInt();
-            int nbAnswers = in.readInt();
-            answers = new ArrayList<>();
-            for (int i=0; i<nbAnswers; i++) {
-                String text = in.readString();
-                Boolean correct = in.readInt() != 0;
-                answers.add(new Answer(text, correct));
-            }
-        }
-
-        public static final Creator<Entry> CREATOR = new Creator<Entry>() {
-            @Override
-            public Entry createFromParcel(Parcel in) {
-                return new Entry(in);
-            }
-
-            @Override
-            public Entry[] newArray(int size) {
-                return new Entry[size];
-            }
-        };
-
-        @Override
-        public int describeContents() {
-            return 0;
-        }
-
-        @Override
-        public void writeToParcel(Parcel dest, int flags) {
-            dest.writeString(question);
-            dest.writeInt(type);
-            dest.writeInt(answers.size());
-            for (Answer answer: answers) {
-                dest.writeString(answer.text);
-                dest.writeInt(answer.correct ? 1 : 0);
-            }
         }
     }
 
@@ -213,7 +173,7 @@ class QuizPool {
         public final String text;
         public final Boolean correct;
 
-        private Answer(String text, Boolean correct) {
+        public Answer(String text, Boolean correct) {
             this.text = text;
             this.correct = correct;
         }

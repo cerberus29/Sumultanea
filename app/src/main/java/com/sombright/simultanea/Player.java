@@ -111,6 +111,10 @@ public class Player {
         }
     }
 
+    boolean isFake() {
+        return mEndpointId == null || mEndpointId.isEmpty();
+    }
+
     void attack(Player opponent) {
         int damage = mCharacter.getAttack() - opponent.getCharacter().getDefense();
         if (opponent.getCombatMode() == COMBAT_MODE_DEFEND) {

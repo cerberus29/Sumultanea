@@ -7,6 +7,8 @@ import com.google.gson.Gson;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.List;
+
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 class GameMessage {
@@ -17,7 +19,7 @@ class GameMessage {
      * It is used to make sure both devices talk the same language.
      * We must increment it every time we change the structure of the messages.
      */
-    private static final int GAME_MESSAGE_API_VERSION = 0;
+    private static final int GAME_MESSAGE_API_VERSION = 1;
 
     static final int GAME_MESSAGE_TYPE_PLAYER_INFO = 1;
     static final int GAME_MESSAGE_TYPE_QUESTION = 2;
@@ -26,7 +28,6 @@ class GameMessage {
     private static final String KEY_TYPE = "type";
 
     private int mType;
-    private QuizPool.Entry mQuestion;
 
     static class MessageInfo {
         int version = GAME_MESSAGE_API_VERSION;
@@ -55,6 +56,14 @@ class GameMessage {
         }
     }
     AttackInfo attackInfo;
+
+    static class QuestionInfo extends MessageInfo {
+        QuizPool.Entry entry;
+        QuestionInfo() {
+            super(GAME_MESSAGE_TYPE_QUESTION);
+        }
+    }
+    QuestionInfo questionInfo;
 
     /**
      * Parse a message into a GameMessage object, according to the API version.
@@ -92,6 +101,9 @@ class GameMessage {
             case GAME_MESSAGE_TYPE_ATTACK:
                 msg.attackInfo = gson.fromJson(jsonString, AttackInfo.class);
                 return msg;
+            case GAME_MESSAGE_TYPE_QUESTION:
+                msg.questionInfo = gson.fromJson(jsonString, QuestionInfo.class);
+                return msg;
         }
         return null;
     }
@@ -106,13 +118,15 @@ class GameMessage {
             case GAME_MESSAGE_TYPE_ATTACK:
                 jsonString = gson.toJson(attackInfo);
                 break;
+            case GAME_MESSAGE_TYPE_QUESTION:
+                jsonString = gson.toJson(questionInfo);
+                break;
             default:
                 return null;
         }
         Log.v(TAG, ">>> jsonString=" + jsonString);
         return jsonString.getBytes(UTF_8);
     }
-
 
     int getType() {
         return mType;
@@ -127,14 +141,9 @@ class GameMessage {
             case GAME_MESSAGE_TYPE_ATTACK:
                 attackInfo = new AttackInfo();
                 break;
+            case GAME_MESSAGE_TYPE_QUESTION:
+                questionInfo = new QuestionInfo();
+                break;
         }
-    }
-
-    QuizPool.Entry getQuestion() {
-        return mQuestion;
-    }
-
-    void setQuestion(QuizPool.Entry question) {
-        mQuestion = question;
     }
 }
