@@ -511,6 +511,10 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
             }
             count++;
         }
+        // In case we just started the game...
+        buttonQuestion.setVisibility(View.VISIBLE);
+        buttonAnswers.setVisibility(View.VISIBLE);
+        buttonBattle.setVisibility(View.VISIBLE);
         state = STATE_WAITING_FOR_ANSWER;
     }
 
@@ -597,9 +601,6 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
 
     public void buttonStartGameClicked(View view) {
         if (state == STATE_WAITING_FOR_PLAYERS) {
-            buttonQuestion.setVisibility(View.VISIBLE);
-            buttonAnswers.setVisibility(View.VISIBLE);
-            buttonBattle.setVisibility(View.VISIBLE);
             buttonStartGame.setVisibility(View.GONE);
             buttonAddFakePlayer.setVisibility(View.GONE);
             startGame();
