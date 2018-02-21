@@ -315,6 +315,7 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     public void addFakePlayer(View v) {
+        Log.d(TAG, "addFakePlayer");
         // Find a unique name
         String characterName = null, playerName = null;
         int num = 0; // Add a number when the name already exists
@@ -333,10 +334,11 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
                 }
             }
         } while (player != null);
-        addPlayer(playerName, characterName, playerName);
+        addPlayer("", characterName, playerName);
     }
 
     private void addPlayer(String endpointId, String character, String name) {
+        Log.d(TAG, "addPlayer");
         Player player = new Player(this);
         player.setEndpointId(endpointId);
         player.setCharacter(character);
@@ -346,6 +348,7 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void updateOtherPlayersUi() {
+        Log.d(TAG, "updateOtherPlayersUi");
         int index = 0;
         for (Player player : otherPlayers) {
             // Container for player icon + name + health
@@ -433,6 +436,7 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void updateLocalPlayerUi() {
+        Log.d(TAG, "updateLocalPlayerUi");
         // Set our character image
         AnimationDrawable animationDrawable = me.getAnimation();
         if (localPlayerThumb.getDrawable() != animationDrawable) {
@@ -457,6 +461,7 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void startGame() {
+        Log.d(TAG, "startGame");
         if (isTaskMaster)
             connectionsClient.stopAdvertising();
         else
@@ -466,6 +471,7 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void newQuestion() {
+        Log.d(TAG, "newQuestion");
         if (isTaskMaster) {
             QuizPool.Entry entry = quizPool.getQuestion();
             GameMessage msg = new GameMessage();
@@ -482,6 +488,7 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void setQuestion(QuizPool.Entry entry) {
+        Log.d(TAG, "setQuestion");
         questionText.setText(entry.question);
 
         // We clear-out the old buttons, and create new ones for the current question
@@ -508,6 +515,7 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void fakePlayerAnswer() {
+        Log.d(TAG, "fakePlayerAnswer");
         for (Player player : otherPlayers) {
             if (player.isFake() && !player.hasAnswered()) {
                 player.setAnswered(true);
@@ -516,6 +524,7 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void checkAllPlayersAnswered() {
+        Log.d(TAG, "checkAllPlayersAnswered");
         for (Player player : otherPlayers) {
             if (!player.hasAnswered()) {
                 // Check back in 1 second
@@ -542,6 +551,7 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
      * Functions to change the content of the bottom-right box
      */
     public void showQuestion(View view) {
+        Log.d(TAG, "showQuestion");
         answersLayout.setVisibility(View.INVISIBLE);
         battleOptionsLayout.setVisibility(View.INVISIBLE);
         questionText.setVisibility(View.VISIBLE);
@@ -549,9 +559,20 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
         buttonQuestion.setEnabled(false);
         buttonAnswers.setEnabled(true);
         buttonBattle.setEnabled(true);
+        abortCombatMode();
     }
 
+    public void abortCombatMode() {
+        if (me.getCombatMode() != Player.COMBAT_MODE_ATTACK) {
+            enablePlayersButtons(false);
+            buttonAttack.setEnabled(true);
+            buttonDefend.setEnabled(true);
+            buttonHeal.setEnabled(true);
+            me.setCombatMode(Player.COMBAT_MODE_NONE);
+        }
+    }
     public void showAnswers(View view) {
+        Log.d(TAG, "showAnswers");
         questionText.setVisibility(View.INVISIBLE);
         battleOptionsLayout.setVisibility(View.INVISIBLE);
         answersLayout.setVisibility(View.VISIBLE);
@@ -559,9 +580,11 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
         buttonQuestion.setEnabled(true);
         buttonAnswers.setEnabled(false);
         buttonBattle.setEnabled(true);
+        abortCombatMode();
     }
 
     public void showBattleOptions(View view) {
+        Log.d(TAG, "showBattleOptions");
         questionText.setVisibility(View.INVISIBLE);
         answersLayout.setVisibility(View.INVISIBLE);
         battleOptionsLayout.setVisibility(View.VISIBLE);
@@ -651,6 +674,7 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
      * @param enabled: if true, the user can press the button to attack
      */
     private void enablePlayersButtons(boolean enabled) {
+        Log.d(TAG, "enablePlayersButtons");
         for (int i = 0; i < otherPlayers.size(); i++) {
             LinearLayout container = (LinearLayout) otherPlayersLayout.getChildAt(i);
             ImageButton button = (ImageButton) container.getChildAt(0);
@@ -962,6 +986,7 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
                 me.attack(player);
                 // TODO startAttackAnimation(player);
                 broadcastPlayerDetails(player);
+                updateOtherPlayersUi();
             } else {
                 GameMessage msg = new GameMessage();
                 msg.setType(GameMessage.GAME_MESSAGE_TYPE_ATTACK);
@@ -1078,17 +1103,7 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
                 onReceivePlayerInfo(endpointId, msg);
                 break;
             case GameMessage.GAME_MESSAGE_TYPE_ATTACK:
-                if (!isTaskMaster) {
-                    Log.e(TAG, "Only taskmaster receives attack requests");
-                    return;
-                }
-                Player attacker = getPlayerByEndpoint(endpointId);
-                Player victim = getPlayerByName(msg.attackInfo.victim);
-                if (attacker == null || victim == null) {
-                    return;
-                }
-                attacker.attack(victim);
-                broadcastPlayerDetails(victim);
+                onReceiveAttackInfo(endpointId, msg);
                 break;
             case GameMessage.GAME_MESSAGE_TYPE_QUESTION:
                 onReceiveQuestion(msg);
@@ -1099,6 +1114,7 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void onReceivePlayerInfo(String endpointId, GameMessage msg) {
+        Log.d(TAG, "onReceivePlayerInfo");
         // The first time we receive a player's info, we add it to the UI
         boolean newPlayer = false;
         Player player = getPlayerByName(msg.playerInfo.name);
@@ -1143,7 +1159,27 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    private void onReceiveAttackInfo(String endpointId, GameMessage msg) {
+        if (!isTaskMaster) {
+            Log.e(TAG, "Only taskmaster receives attack requests");
+            return;
+        }
+        Player attacker = getPlayerByEndpoint(endpointId);
+        Player victim = getPlayerByName(msg.attackInfo.victim);
+        if (attacker == null || victim == null) {
+            return;
+        }
+        attacker.attack(victim);
+        broadcastPlayerDetails(victim);
+        if (victim == me) {
+            updateLocalPlayerUi();
+        } else {
+            updateOtherPlayersUi();
+        }
+    }
+
     private void onReceiveQuestion(GameMessage msg) {
+        Log.d(TAG, "onReceiveQuestion");
         QuizPool.Entry entry = msg.questionInfo.entry;
         setQuestion(entry);
     }
@@ -1173,6 +1209,7 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void broadcastMessage(GameMessage msg) {
+        Log.d(TAG, "broadcastMessage");
         for (String endpointId : mEstablishedConnections.keySet()) {
             sendMessage(endpointId, msg);
         }
@@ -1202,12 +1239,14 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void broadcastPlayerDetails(Player player) {
+        Log.d(TAG, "broadcastPlayerDetails" + player.getName());
         for (String endpointId : mEstablishedConnections.keySet()) {
             sendPlayerDetails(endpointId, player);
         }
     }
 
     private void sendPlayerDetails(String endpointId, Player player) {
+        Log.d(TAG, "sendPlayerDetails" + player.getName());
         GameMessage msg = new GameMessage();
         msg.setType(GameMessage.GAME_MESSAGE_TYPE_PLAYER_INFO);
         msg.playerInfo.name = player.getName();

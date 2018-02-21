@@ -104,7 +104,7 @@ public class Player {
                 break;
             case COMBAT_MODE_HEAL:
                 mCombatMode = mode;
-                mHealth = min(mHealth + mCharacter.getHealth(), 100);
+                mHealth = min(mHealth + mCharacter.getHeal(), 100);
                 break;
             default:
                 mCombatMode = COMBAT_MODE_NONE;
@@ -120,6 +120,7 @@ public class Player {
         if (opponent.getCombatMode() == COMBAT_MODE_DEFEND) {
             damage = damage / 2;
         }
+        Log.d(TAG, "Player " + mName + " attacking " + opponent.mCharacter.getName(mContext) + " with damage=" + damage + " on health=" + opponent.getHealth());
         opponent.setHealth(max(0, opponent.getHealth() - damage));
     }
 }

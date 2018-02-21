@@ -10,7 +10,7 @@ class Character {
     private final int mDeadImageId;
     private final int mImageResourceAttack;
     private final int mStringResourceLore;
-    private final int mHealth, mRecovery, mAttack, mDefense;
+    private final int mHeal, mRecovery, mAttack, mDefense;
 
     Character(int strResName,
               int imgRes,
@@ -18,7 +18,7 @@ class Character {
               int deathAnimationId, int deadImageId,
               int imgResAttack,
               int strResLore,
-              int health, int recovery, int attack, int defense) {
+              int heal, int recovery, int attack, int defense) {
         mStringResourceName = strResName;
         mImageResource = imgRes;
         mImageResourceHurt = imgResHurt;
@@ -26,7 +26,7 @@ class Character {
         mDeadImageId = deadImageId;
         mImageResourceAttack = imgResAttack;
         mStringResourceLore = strResLore;
-        mHealth = health;
+        mHeal = heal;
         mRecovery = recovery;
         mAttack = attack;
         mDefense = defense;
@@ -63,8 +63,8 @@ class Character {
     int getStringResourceLore() {
         return mStringResourceLore;
     }
-    int getHealth() {
-        return mHealth;
+    int getHeal() {
+        return mHeal;
     }
     int getRecovery() {
         return mRecovery;

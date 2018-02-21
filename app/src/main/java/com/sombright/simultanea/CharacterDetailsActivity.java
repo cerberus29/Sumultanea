@@ -41,7 +41,7 @@ public class CharacterDetailsActivity extends AppCompatActivity {
         textViewCharacterName.setText(character.getStringResourceName());
         TextView textViewStats = findViewById(R.id.textViewStats);
         String msg_stats = String.format(getString(R.string.msg_stats),
-                character.getHealth(), character.getRecovery(),
+                character.getHeal(), character.getRecovery(),
                 character.getAttack(), character.getDefense());
         textViewStats.setText(msg_stats);
         TextView textViewLore = findViewById(R.id.textViewLore);

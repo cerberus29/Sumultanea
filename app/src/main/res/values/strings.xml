@@ -14,12 +14,11 @@
     <string name="duel_name">Duelist</string>
     <string name="pump_name">Jack</string>
     <string name="war_name">Warrior</string>
-    <string name="msg_stats">Health: %1$d\nRecovery:%2$d\nAttack:%3$d\nDefense:%4$d</string>
+    <string name="msg_stats">Heal: %1$d\nRecovery:%2$d\nAttack:%3$d\nDefense:%4$d</string>
     <string name="Warrior_Lore">Brutus - The Abyssal Barbarian.\n\nAn entity from a land unknown. Found unconscious by a group of barbarian warriors.\nHaving lost his memories, he does not remember where he came from, what he really is, and what his name was. Accepted as one of their own, the barbarians gave him the name Brutus. He wields a large shield and a battle axe.</string>
     <string name="Duelist_Lore">Eve - The Silver Assassin\n\nA Midland commoner. With no family around, she grew up by herself on the streets.\nHer family died in the war between the Land Above and Down Under.\nShe is skilled in acrobatics and wields two silver-plated daggers.</string>
     <string name="Panda_Lore">Pandgeal - The Divine Panda Mage\n\nOne of the several Panda Mages descended from the Land Above to bring peace to Midland.\nAfter witnessing the death of his fellow Panda Mages, he decided to stay in Midland to seek vengeance - to hunt for the mysterious Red Panda that betrayed them.\nHe wields a staff made of bamboo, imbued with divine energy.</string>
     <string name="Scarecrow_Lore">Jack - The Malevolent Pumpkin Sorcerer\n\nThe spirit belonged to an evil sorcerer that was taken to Down Under after committing regicide.\nJack utilizes the dark magic he had studied before his fall.</string>
-    <string name="multiplayerModeSetting">Multiplayer Mode</string>
     <string name="error_missing_permissions">Cannot start without required permissions</string>
     <string name="multiPlayerMaster">Act as the master</string>
     <string name="waiting_for_players">Waiting for other players...</string>
