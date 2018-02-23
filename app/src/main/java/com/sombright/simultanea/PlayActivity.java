@@ -249,8 +249,8 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
         localPlayerHealth.getProgressDrawable().setColorFilter(Color.RED, android.graphics.PorterDuff.Mode.SRC_IN);
 
         buttonQuestion.setEnabled(false);
-        buttonAnswers.setEnabled(false);
-        buttonBattle.setEnabled(false);
+        buttonAnswers.setEnabled(true);
+        buttonBattle.setEnabled(true);
 
         updateLocalPlayerUi();
 
