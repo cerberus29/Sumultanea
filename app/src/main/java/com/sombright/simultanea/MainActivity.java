@@ -11,13 +11,14 @@ public class MainActivity extends AppCompatActivity {
     public static final String TAG = "MainActivity";
     private MediaPlayer mediaPlayer;
     private boolean playIntro = true;
-
+    private PreferencesProxy mPrefs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "onCreate");
         setContentView(R.layout.activity_main);
+        mPrefs = new PreferencesProxy(this);
     }
 
     @Override
@@ -65,7 +66,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onClickPlay(View view) {
-        Intent intent = new Intent(this, PlayActivity.class);
+        Intent intent;
+        if (mPrefs.isMultiPlayerMaster())
+            intent = new Intent(this, TaskMasterActivity.class);
+        else
+            intent = new Intent(this, PlayActivity.class);
         startActivity(intent);
     }
 

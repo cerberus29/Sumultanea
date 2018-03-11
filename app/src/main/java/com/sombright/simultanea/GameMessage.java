@@ -19,11 +19,12 @@ class GameMessage {
      * It is used to make sure both devices talk the same language.
      * We must increment it every time we change the structure of the messages.
      */
-    private static final int GAME_MESSAGE_API_VERSION = 1;
+    private static final int GAME_MESSAGE_API_VERSION = 2;
 
     static final int GAME_MESSAGE_TYPE_PLAYER_INFO = 1;
     static final int GAME_MESSAGE_TYPE_QUESTION = 2;
-    static final int GAME_MESSAGE_TYPE_ATTACK = 3;
+    static final int GAME_MESSAGE_TYPE_ANSWER = 3;
+    static final int GAME_MESSAGE_TYPE_ATTACK = 4;
     private static final String KEY_VERSION = "version";
     private static final String KEY_TYPE = "type";
 
@@ -39,9 +40,12 @@ class GameMessage {
     }
 
     static class PlayerInfo extends MessageInfo {
+        String endpointId;
+        String uniqueId;
         String name;
         String character;
         int health;
+        int points;
         int battle;
         PlayerInfo() {
             super(GAME_MESSAGE_TYPE_PLAYER_INFO);
@@ -64,6 +68,14 @@ class GameMessage {
         }
     }
     QuestionInfo questionInfo;
+
+    static class AnswerInfo extends MessageInfo {
+        boolean correct;
+        AnswerInfo() {
+            super(GAME_MESSAGE_TYPE_ANSWER);
+        }
+    }
+    AnswerInfo answerInfo;
 
     /**
      * Parse a message into a GameMessage object, according to the API version.
@@ -104,6 +116,9 @@ class GameMessage {
             case GAME_MESSAGE_TYPE_QUESTION:
                 msg.questionInfo = gson.fromJson(jsonString, QuestionInfo.class);
                 return msg;
+            case GAME_MESSAGE_TYPE_ANSWER:
+                msg.answerInfo = gson.fromJson(jsonString, AnswerInfo.class);
+                return msg;
         }
         return null;
     }
@@ -143,6 +158,9 @@ class GameMessage {
                 break;
             case GAME_MESSAGE_TYPE_QUESTION:
                 questionInfo = new QuestionInfo();
+                break;
+            case GAME_MESSAGE_TYPE_ANSWER:
+                answerInfo = new AnswerInfo();
                 break;
         }
     }

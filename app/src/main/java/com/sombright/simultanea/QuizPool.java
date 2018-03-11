@@ -122,9 +122,9 @@ class QuizPool {
     private static final String KEY_TYPE = "type";
     private static final String KEY_ANSWER = "answer";
     private static final String KEY_CORRECT = "correct";
-    private static final int TYPE_MULTIPLE_CHOICE = 0;
-    private static final int TYPE_IDENTIFICATION = 1;
-    private static final int TYPE_TRUE_FALSE = 2;
+    static final int TYPE_MULTIPLE_CHOICE = 0;
+    static final int TYPE_IDENTIFICATION = 1;
+    static final int TYPE_TRUE_FALSE = 2;
 
     private List parse(InputStream in) throws XmlPullParserException, IOException {
         try {

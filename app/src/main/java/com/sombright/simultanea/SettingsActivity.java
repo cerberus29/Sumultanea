@@ -11,6 +11,7 @@ import android.widget.TextView;
 
 public class SettingsActivity extends AppCompatActivity implements CompoundButton.OnCheckedChangeListener, TextView.OnEditorActionListener {
     private Switch mMultiPlayerMasterView;
+    private Switch mOpenTriviaSwitch;
     private EditText mMultiPlayerAliasView;
     private PreferencesProxy mPrefs;
 
@@ -24,6 +25,7 @@ public class SettingsActivity extends AppCompatActivity implements CompoundButto
         // Restore preferences
         boolean multiPlayerMaster = mPrefs.isMultiPlayerMaster();
         String multiPlayerAlias = mPrefs.getMultiPlayerAlias();
+        boolean useOpenTriviaDatabase = mPrefs.shouldUseOpenTriviaDatabase();
 
         // Modify UI to show the current values
         mMultiPlayerMasterView = findViewById(R.id.multiPlayerMasterSwitch);
@@ -33,6 +35,10 @@ public class SettingsActivity extends AppCompatActivity implements CompoundButto
         mMultiPlayerAliasView = findViewById(R.id.multiPlayerAlias);
         mMultiPlayerAliasView.setText(multiPlayerAlias);
         mMultiPlayerAliasView.setOnEditorActionListener(this);
+
+        mOpenTriviaSwitch = findViewById(R.id.openTriviaSwitch);
+        mOpenTriviaSwitch.setChecked(useOpenTriviaDatabase);
+        mOpenTriviaSwitch.setOnCheckedChangeListener(this);
     }
 
     // --------------- Get notified when UI changes -----------------------------
@@ -43,6 +49,9 @@ public class SettingsActivity extends AppCompatActivity implements CompoundButto
         switch (compoundButton.getId()) {
             case R.id.multiPlayerMasterSwitch:
                 mPrefs.setMultiplayerMaster(b);
+                break;
+            case R.id.openTriviaSwitch:
+                mPrefs.setUseOpenTriviaDatabase(b);
                 break;
         }
     }
@@ -60,7 +69,7 @@ public class SettingsActivity extends AppCompatActivity implements CompoundButto
                         event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
             if (event == null || !event.isShiftPressed()) {
                 mPrefs.setMultiplayerAlias(mMultiPlayerAliasView.getText().toString());
-                return true;
+                return false;
             }
         }
         return false;

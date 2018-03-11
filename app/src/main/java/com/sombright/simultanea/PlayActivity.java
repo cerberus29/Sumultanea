@@ -30,6 +30,7 @@ import android.view.animation.Animation;
 import android.view.animation.DecelerateInterpolator;
 import android.view.animation.LinearInterpolator;
 import android.widget.Button;
+import android.widget.GridView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -60,7 +61,7 @@ import java.util.Random;
 
 import static com.sombright.simultanea.MainActivity.TAG;
 
-public class PlayActivity extends AppCompatActivity implements View.OnClickListener {
+public class PlayActivity extends ConnectionsActivity implements View.OnClickListener, PlayersViewAdapter.OnClickPlayerListener {
 
     private final static int STATE_WAITING_FOR_PLAYERS = 1;
     private final static int STATE_WAITING_FOR_QUESTION = 2;
@@ -83,35 +84,23 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
                     Manifest.permission.ACCESS_COARSE_LOCATION,
             };
     private static final int REQUEST_CODE_REQUIRED_PERMISSIONS = 1;
-    private final Map<String, String> mDiscoveredPlayers = new HashMap<>();
-    private final Map<String, String> mPendingConnections = new HashMap<>();
-    private final Map<String, String> mEstablishedConnections = new HashMap<>();
+    private static final String SERVICE_ID = PlayActivity.class.getName();
     TextView questionText;
-    private int state = STATE_WAITING_FOR_PLAYERS;
-    private QuizPool quizPool;
     private Random random = new Random();
     private LinearLayout answersLayout;
     private LinearLayout battleOptionsLayout;
     private Player me;
-    private List<Player> otherPlayers = new ArrayList<>();
-    private FlexboxLayout otherPlayersLayout;
+    private PlayersViewAdapter mPlayersViewAdapter;
+    private GridView otherPlayersLayout;
     private TextView textViewLocalPlayer;
     private ProgressBar localPlayerHealth;
     private ImageView localPlayerThumb;
     private ImageView localPlayerAnimation, otherPlayerAnimation;
-    private Button buttonQuestion, buttonAnswers, buttonBattle;
-    private Button buttonStartGame, buttonAddFakePlayer;
+    private Button buttonStartGame, buttonQuestion, buttonAnswers, buttonBattle;
     private Button buttonHeal, buttonAttack, buttonDefend;
     private Handler handler = new Handler();
     private MediaPlayer mMusic;
     private Animation fadeOutAnimation;
-    private boolean isTaskMaster;
-    private Runnable doCheckAllPlayersAnswered = new Runnable() {
-        @Override
-        public void run() {
-            checkAllPlayersAnswered();
-        }
-    };
     // Some variables we need to keep for the zoom-out animation
     private ImageView mOtherPlayerThumb;
     private Player mOtherPlayer;
@@ -125,65 +114,6 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
     private int mShortAnimationDuration = 500;
     private Player victim = null;
     private LinearLayout victim_container = null;
-    // Our handle to Nearby Connections
-    private ConnectionsClient connectionsClient;
-    // Callbacks for receiving payloads
-    private final PayloadCallback payloadCallback =
-            new PayloadCallback() {
-                @Override
-                public void onPayloadReceived(String endpointId, Payload payload) {
-                    // Handle this message in a regular function to reduce indentation.
-                    onPayloadReceivedInternal(endpointId, payload);
-                }
-
-                @Override
-                public void onPayloadTransferUpdate(String endpointId, PayloadTransferUpdate update) {
-                    // Do nothing.
-                }
-            };
-    // Callbacks for connections to other devices
-    private final ConnectionLifecycleCallback connectionLifecycleCallback =
-            new ConnectionLifecycleCallback() {
-                @Override
-                public void onConnectionInitiated(String endpointId, ConnectionInfo connectionInfo) {
-                    onConnectionInitiatedInternal(endpointId, connectionInfo);
-                }
-
-                @Override
-                public void onConnectionResult(String endpointId, ConnectionResolution result) {
-                    onConnectionResultInternal(endpointId, result);
-                }
-
-                @Override
-                public void onDisconnected(String endpointId) {
-                    onDisconnectedInternal(endpointId);
-                }
-            };
-    // Callbacks for finding other devices
-    private final EndpointDiscoveryCallback endpointDiscoveryCallback =
-            new EndpointDiscoveryCallback() {
-                @Override
-                public void onEndpointFound(String endpointId, DiscoveredEndpointInfo info) {
-                    onEndpointFoundInternal(endpointId, info);
-                }
-
-                @Override
-                public void onEndpointLost(String endpointId) {
-                    onEndpointLostInternal(endpointId);
-                }
-            };
-
-    /**
-     * Returns true if the app was granted all the permissions. Otherwise, returns false.
-     */
-    private static boolean hasPermissions(Context context, String... permissions) {
-        for (String permission : permissions) {
-            if (ContextCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
-                return false;
-            }
-        }
-        return true;
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -212,7 +142,6 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
         PreferencesProxy prefs = new PreferencesProxy(this);
 
         // Retrieve a copy of the settings (cannot change during the game)
-        isTaskMaster = prefs.isMultiPlayerMaster();
         String name = prefs.getMultiPlayerAlias();
 
         me = new Player(this);
@@ -232,13 +161,10 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
         localPlayerAnimation = findViewById(R.id.localPlayerAnimation);
         otherPlayerAnimation = findViewById(R.id.otherPlayerAnimation);
 
+        buttonStartGame = findViewById(R.id.buttonStartGame);
         buttonQuestion = findViewById(R.id.buttonQuestion);
         buttonAnswers = findViewById(R.id.buttonAnswers);
         buttonBattle = findViewById(R.id.buttonBattle);
-        buttonStartGame = findViewById(R.id.buttonStartGame);
-        buttonAddFakePlayer = findViewById(R.id.buttonAddFakePlayer);
-        buttonStartGame.setVisibility(isTaskMaster?View.VISIBLE:View.GONE);
-        buttonAddFakePlayer.setVisibility(isTaskMaster?View.VISIBLE:View.GONE);
 
         buttonHeal = findViewById(R.id.buttonHeal);
         buttonAttack = findViewById(R.id.buttonAttack);
@@ -261,20 +187,11 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
         fadeOutAnimation.setRepeatCount(Animation.INFINITE);
         fadeOutAnimation.setRepeatMode(Animation.REVERSE);
         // Remove the fake content we put in the initial layout (for designing)
-        otherPlayersLayout.removeAllViews();
+        mPlayersViewAdapter = new PlayersViewAdapter(this, R.layout.players_example_item, this);
 
-        quizPool = new QuizPool(this);
-
-        connectionsClient = Nearby.getConnectionsClient(this);
-        questionText.setText(isTaskMaster?R.string.waiting_for_players:R.string.waiting_for_master);
+        questionText.setText(R.string.waiting_for_master);
         answersLayout.removeAllViews();
-        if (isTaskMaster) {
-            // Note: Advertising may fail. To keep this demo simple, we don't handle failures.
-            connectionsClient.startAdvertising(me.getName(), getPackageName(), connectionLifecycleCallback, new AdvertisingOptions(STRATEGY));
-        } else {
-            // Note: Discovery may fail. To keep this demo simple, we don't handle failures.
-            connectionsClient.startDiscovery(getPackageName(), endpointDiscoveryCallback, new DiscoveryOptions(STRATEGY));
-        }
+        startDiscovering();
     }
 
     @Override
@@ -308,12 +225,10 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
         Log.d(TAG, "onStop");
         mMusic.stop();
         mMusic.release();
-        if (connectionsClient != null) {
-            connectionsClient.stopAllEndpoints();
-        }
+        stopAllEndpoints();
         super.onStop();
     }
-
+/*
     public void addFakePlayer(View v) {
         Log.d(TAG, "addFakePlayer");
         // Find a unique name
@@ -336,103 +251,14 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
         } while (player != null);
         addPlayer("", characterName, playerName);
     }
-
-    private void addPlayer(String endpointId, String character, String name) {
+*/
+    private void addPlayer(Endpoint endpoint, String character, String name) {
         Log.d(TAG, "addPlayer");
         Player player = new Player(this);
-        player.setEndpointId(endpointId);
+        player.setEndpoint(endpoint);
         player.setCharacter(character);
         player.setName(name);
-        otherPlayers.add(player);
-        updateOtherPlayersUi();
-    }
-
-    private void updateOtherPlayersUi() {
-        Log.d(TAG, "updateOtherPlayersUi");
-        int index = 0;
-        for (Player player : otherPlayers) {
-            // Container for player icon + name + health
-            LinearLayout playerAndLivesContainer = (LinearLayout) otherPlayersLayout.getChildAt(index++);
-            if (playerAndLivesContainer == null) {
-                playerAndLivesContainer = new LinearLayout(this);
-                // Vertical, because we want the player on top of the name and health
-                playerAndLivesContainer.setOrientation(LinearLayout.VERTICAL);
-                playerAndLivesContainer.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.MATCH_PARENT));
-                // Player image
-                ImageButton btn = new ImageButton(this);
-                // Attach the player data to the button
-                btn.setTag(R.id.id_player, player);
-                // Prepare the button style
-                btn.setScaleType(ImageView.ScaleType.FIT_START);
-                AnimationDrawable animationDrawable = player.getAnimation();
-                btn.setImageDrawable(animationDrawable);
-                animationDrawable.start();
-                btn.setAdjustViewBounds(true);
-                btn.setEnabled(false);
-                // Convert 75dp into pixels
-                int size_in_px = dp2px(75);
-                btn.setLayoutParams(new LinearLayout.LayoutParams(size_in_px, size_in_px));
-                btn.setOnClickListener(this);
-                // Add the player button to the vertical container (on top of the name and health)
-                playerAndLivesContainer.addView(btn);
-
-                // Name
-                TextView nameTextView = new TextView(this);
-                nameTextView.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-                nameTextView.setText(player.getName());
-                nameTextView.setGravity(Gravity.CENTER_HORIZONTAL);
-                playerAndLivesContainer.addView(nameTextView);
-
-                ProgressBar healthBar = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
-                healthBar.getProgressDrawable().setColorFilter(Color.RED, android.graphics.PorterDuff.Mode.SRC_IN);
-                // Center horizontally based on parent container width
-                LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-                size_in_px = dp2px(8);
-                lp.setMargins(size_in_px,0,size_in_px,0);
-                healthBar.setLayoutParams(lp);
-                healthBar.setProgress(player.getHealth());
-                // Add the lives row to the vertical container (under the player icon)
-                playerAndLivesContainer.addView(healthBar);
-
-                // Finally, add to the game layout.
-                otherPlayersLayout.addView(playerAndLivesContainer);
-                if (isTaskMaster) {
-                    if (otherPlayers.size() == 1) {
-                        buttonStartGame.setEnabled(true);
-                    }
-                    if (otherPlayers.size() == MAX_PLAYERS) {
-                        buttonAddFakePlayer.setEnabled(false);
-                    }
-                }
-            } else {
-                ImageButton btn = (ImageButton) playerAndLivesContainer.getChildAt(0);
-                if (btn.getTag(R.id.id_player) != player) {
-                    btn.setTag(R.id.id_player, player);
-                }
-                AnimationDrawable animationDrawable = player.getAnimation();
-                if (btn.getDrawable() != animationDrawable) {
-                    btn.setImageDrawable(animationDrawable);
-                    animationDrawable.start();
-                }
-                // Name
-                TextView nameTextView = (TextView) playerAndLivesContainer.getChildAt(1);
-                if (nameTextView.getText() != player.getName()) {
-                    nameTextView.setText(player.getName());
-                }
-                // Health
-                ProgressBar healthBar = (ProgressBar) playerAndLivesContainer.getChildAt(2);
-                if (healthBar.getProgress() != player.getHealth()) {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                        healthBar.setProgress(player.getHealth(), true);
-                    } else {
-                        healthBar.setProgress(player.getHealth());
-                    }
-                }
-            }
-        }
-        while (otherPlayersLayout.getChildCount() > otherPlayers.size()) {
-            otherPlayersLayout.removeViewAt(otherPlayersLayout.getChildCount() - 1);
-        }
+        mPlayersViewAdapter.add(player);
     }
 
     private void updateLocalPlayerUi() {
@@ -455,91 +281,6 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    // Handy function to convert sizes in dp (used in the layout editor) into pixels (used in the code)
-    private int dp2px(int dp) {
-        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, getResources().getDisplayMetrics());
-    }
-
-    private void startGame() {
-        Log.d(TAG, "startGame");
-        if (isTaskMaster)
-            connectionsClient.stopAdvertising();
-        else
-            connectionsClient.stopDiscovery();
-        newQuestion();
-        showQuestion(buttonQuestion);
-    }
-
-    private void newQuestion() {
-        Log.d(TAG, "newQuestion");
-        if (isTaskMaster) {
-            QuizPool.Entry entry = quizPool.getQuestion();
-            GameMessage msg = new GameMessage();
-            msg.setType(GameMessage.GAME_MESSAGE_TYPE_QUESTION);
-            msg.questionInfo.entry = entry;
-            for (Player player : otherPlayers) {
-                player.setAnswered(false);
-            }
-            broadcastMessage(msg);
-            onReceiveQuestion(msg);
-        } else {
-            Log.wtf(TAG, "Other players should just wait for a new question!");
-        }
-    }
-
-    private void setQuestion(QuizPool.Entry entry) {
-        Log.d(TAG, "setQuestion");
-        questionText.setText(entry.question);
-
-        // We clear-out the old buttons, and create new ones for the current question
-        answersLayout.removeAllViews();
-        int count = 0;
-        for (QuizPool.Answer answer : entry.answers) {
-            Button button = new Button(this);
-            button.setText(answer.text);
-            button.setTag(R.id.id_answer, answer);
-            button.setOnClickListener(this);
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-            lp.gravity = Gravity.CENTER;
-            button.setLayoutParams(lp);
-            if (count == 0) {
-                answersLayout.addView(button);
-            } else {
-                // insert at random position
-                int index = random.nextInt(count);
-                answersLayout.addView(button, index);
-            }
-            count++;
-        }
-        // In case we just started the game...
-        buttonQuestion.setVisibility(View.VISIBLE);
-        buttonAnswers.setVisibility(View.VISIBLE);
-        buttonBattle.setVisibility(View.VISIBLE);
-        state = STATE_WAITING_FOR_ANSWER;
-    }
-
-    private void fakePlayerAnswer() {
-        Log.d(TAG, "fakePlayerAnswer");
-        for (Player player : otherPlayers) {
-            if (player.isFake() && !player.hasAnswered()) {
-                player.setAnswered(true);
-            }
-        }
-    }
-
-    private void checkAllPlayersAnswered() {
-        Log.d(TAG, "checkAllPlayersAnswered");
-        for (Player player : otherPlayers) {
-            if (!player.hasAnswered()) {
-                // Check back in 1 second
-                handler.postDelayed(doCheckAllPlayersAnswered, 500);
-                return;
-            }
-        }
-        // Everyone has answered, time for a new question
-        newQuestion();
-    }
-
     // Go through a sub-tree of views and call setEnabled on every leaf (views)
     private void recursiveSetEnabled(boolean enable, ViewGroup vg) {
         for (int i = 0; i < vg.getChildCount(); i++) {
@@ -549,6 +290,11 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
                 recursiveSetEnabled(enable, (ViewGroup) child);
             }
         }
+    }
+
+    public void onClickStartGame(View view) {
+        Log.d(TAG, "onClickStartGame");
+        stopDiscovering();
     }
 
     /**
@@ -568,7 +314,7 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
 
     public void abortCombatMode() {
         if (me.getCombatMode() != Player.COMBAT_MODE_ATTACK) {
-            enablePlayersButtons(false);
+            mPlayersViewAdapter.setClickable(false);
             buttonAttack.setEnabled(true);
             buttonDefend.setEnabled(true);
             buttonHeal.setEnabled(true);
@@ -599,23 +345,13 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
     }
 
 
-    public void buttonStartGameClicked(View view) {
-        if (state == STATE_WAITING_FOR_PLAYERS) {
-            buttonStartGame.setVisibility(View.GONE);
-            buttonAddFakePlayer.setVisibility(View.GONE);
-            startGame();
-        } else {
-            Log.d(TAG, "Unhandled task master button click in state " + state);
-        }
-    }
-
     public void buttonHealClicked(View view) {
         buttonHeal.setEnabled(false);
         buttonAttack.setEnabled(false);
         buttonDefend.setEnabled(false);
         me.setCombatMode(Player.COMBAT_MODE_HEAL);
         updateLocalPlayerUi();
-        broadcastPlayerDetails(me);
+        sendPlayerDetails();
         int cooldown = me.getCharacter().getRecovery() * 1000;
         handler.postDelayed(new Runnable() {
             @Override
@@ -625,7 +361,7 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 me.setCombatMode(Player.COMBAT_MODE_NONE);
                 updateLocalPlayerUi();
-                broadcastPlayerDetails(me);
+                sendPlayerDetails();
                 buttonHeal.setEnabled(true);
                 buttonAttack.setEnabled(true);
                 buttonDefend.setEnabled(true);
@@ -639,7 +375,7 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
         buttonDefend.setEnabled(false);
         me.setCombatMode(Player.COMBAT_MODE_DEFEND);
         updateLocalPlayerUi();
-        broadcastPlayerDetails(me);
+        sendPlayerDetails();
         int cooldown = me.getCharacter().getRecovery() * 1000;
         handler.postDelayed(new Runnable() {
             @Override
@@ -649,7 +385,7 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 me.setCombatMode(Player.COMBAT_MODE_NONE);
                 updateLocalPlayerUi();
-                broadcastPlayerDetails(me);
+                sendPlayerDetails();
                 buttonHeal.setEnabled(true);
                 buttonAttack.setEnabled(true);
                 buttonDefend.setEnabled(true);
@@ -662,73 +398,9 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
         buttonAttack.setEnabled(false);
         buttonDefend.setEnabled(false);
         me.setCombatMode(Player.COMBAT_MODE_ATTACK);
-        enablePlayersButtons(true);
+        mPlayersViewAdapter.setClickable(true);
         updateLocalPlayerUi();
-        broadcastPlayerDetails(me);
-    }
-
-    /**
-     * Change the status of the other players buttons (for choosing who to attack)
-     * <p>
-     * We never enable buttons for dead players, that's just wrong.
-     *
-     * @param enabled: if true, the user can press the button to attack
-     */
-    private void enablePlayersButtons(boolean enabled) {
-        Log.d(TAG, "enablePlayersButtons");
-        for (int i = 0; i < otherPlayers.size(); i++) {
-            LinearLayout container = (LinearLayout) otherPlayersLayout.getChildAt(i);
-            ImageButton button = (ImageButton) container.getChildAt(0);
-            // Make sure dead players are not re-enabled
-            if (otherPlayers.get(i).getHealth() == 0) {
-                button.setEnabled(false);
-            } else {
-                button.setEnabled(enabled);
-            }
-        }
-    }
-
-    private void waitForYourFate() {
-        /* Todo: make the game more intelligent by calculating:
-           the likelihood for each player to answer correctly (player skills)
-           the likelihood for each player to attack me
-           For now: just get attacked 50% of the time by a random player.
-         */
-        if (random.nextInt(2) == 0) {
-            int attacker_index;
-            Player attacker;
-            // Prevent a zombie attack! Pick random attacker until we find one that is alive
-            do {
-                attacker_index = random.nextInt(otherPlayers.size());
-                attacker = otherPlayers.get(attacker_index);
-            } while (attacker.getHealth() == 0);
-            String msg_without_name = getString(R.string.fate_attacked);
-            String msg_with_name = String.format(msg_without_name, attacker.getName());
-            questionText.setText(msg_with_name);
-
-            me.setHealth(me.getHealth() - 1);
-
-            // Animate the heart
-            localPlayerHealth.startAnimation(fadeOutAnimation);
-
-            // Animate the characters (hurt or death)
-            LinearLayout attackerContainer = (LinearLayout) otherPlayersLayout.getChildAt(attacker_index);
-            ImageButton attackerView = (ImageButton) attackerContainer.getChildAt(0);
-            zoomImageFromThumb(attackerView, attacker, new Runnable() {
-                @Override
-                public void run() {
-                    announceDamage();
-                }
-            }, false);
-        } else {
-            questionText.setText(R.string.fate_spared);
-            handler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    newQuestion();
-                }
-            }, MESSAGE_DURATION_MS);
-        }
+        sendPlayerDetails();
     }
 
     /**
@@ -962,13 +634,6 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
                     finishGame();
                 }
             }, MESSAGE_DURATION_MS);
-        } else {
-            handler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    newQuestion();
-                }
-            }, MESSAGE_DURATION_MS);
         }
     }
 
@@ -982,19 +647,12 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
         // Check if it was a player button
         Player player = (Player) v.getTag(R.id.id_player);
         if (player != null) {
-            enablePlayersButtons(false);
-            if (isTaskMaster) {
-                me.attack(player);
-                // TODO startAttackAnimation(player);
-                broadcastPlayerDetails(player);
-                updateOtherPlayersUi();
-            } else {
-                GameMessage msg = new GameMessage();
-                msg.setType(GameMessage.GAME_MESSAGE_TYPE_ATTACK);
-                msg.attackInfo.victim = player.getName();
-                broadcastMessage(msg);
-                // TODO startAttackAnimation(player);
-            }
+            mPlayersViewAdapter.setClickable(false);
+            GameMessage msg = new GameMessage();
+            msg.setType(GameMessage.GAME_MESSAGE_TYPE_ATTACK);
+            msg.attackInfo.victim = player.getName();
+            broadcastMessage(msg);
+            // TODO startAttackAnimation(player);
             buttonHeal.setEnabled(true);
             buttonAttack.setEnabled(true);
             buttonDefend.setEnabled(true);
@@ -1004,12 +662,6 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
         // Check if it was an answer button
         QuizPool.Answer answer = (QuizPool.Answer) v.getTag(R.id.id_answer);
         if (answer != null) {
-            if (state != STATE_WAITING_FOR_ANSWER) {
-                Log.e(TAG, "Unexpected answer click while in state " + state);
-                return;
-            }
-            state = STATE_WAITING_FOR_QUESTION;
-
             // First thing: prevent user from clicking other answers while we handle this one.
             recursiveSetEnabled(false, answersLayout);
 
@@ -1022,11 +674,10 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
                 questionText.setText(R.string.answer_incorrect);
                 v.setBackgroundColor(ColorUtils.setAlphaComponent(Color.RED, 150));
             }
-
-            if (isTaskMaster) {
-                // Wait for all players to answer, then send a new question
-                handler.post(doCheckAllPlayersAnswered);
-            }
+            GameMessage msg = new GameMessage();
+            msg.setType(GameMessage.GAME_MESSAGE_TYPE_ANSWER);
+            msg.answerInfo.correct = answer.correct;
+            send(Payload.fromBytes(msg.toBytes()));
             return;
         }
 
@@ -1044,8 +695,6 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
                     removePlayer(victim.getName());
                 }
             }, MESSAGE_DURATION_MS);
-        } else {
-            newQuestion();
         }
     }
 
@@ -1054,7 +703,10 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
         recursiveSetEnabled(false, victim_container);
         // Check if we won
         boolean everybodyDead = true;
-        for (Player player : otherPlayers) {
+        for (int i = 0; i < mPlayersViewAdapter.getCount(); i++) {
+            final Player player = mPlayersViewAdapter.getItem(i);
+            if (player == null)
+                continue;
             if (player.getHealth() != 0) {
                 everybodyDead = false;
                 MediaPlayer mediaPlayer = MediaPlayer.create(PlayActivity.this, R.raw.fail);
@@ -1085,26 +737,27 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
     /**
      * Process a message received from another device.
      *
-     * @param endpointId the sender
-     * @param payload    the message
+     * @param endpoint the sender
+     * @param payload  the message
      */
-    private void onPayloadReceivedInternal(String endpointId, Payload payload) {
+    @Override
+    protected void onReceive(Endpoint endpoint, Payload payload) {
         if (payload.getType() != Payload.Type.BYTES) {
             Log.e(TAG, "Cannot handle messages of type " + payload.getType());
             return;
         }
         GameMessage msg = GameMessage.fromBytes(payload.asBytes());
         if (msg == null) {
-            Log.e(TAG, "Cannot parse messages from endpoint " + endpointId);
-            cleanupAndDisconnectEndpoint(endpointId);
+            Log.e(TAG, "Cannot parse messages from endpoint " + endpoint.getName());
+            cleanupAndDisconnectEndpoint(endpoint);
             return;
         }
         switch (msg.getType()) {
             case GameMessage.GAME_MESSAGE_TYPE_PLAYER_INFO:
-                onReceivePlayerInfo(endpointId, msg);
+                onReceivePlayerInfo(endpoint, msg);
                 break;
             case GameMessage.GAME_MESSAGE_TYPE_ATTACK:
-                onReceiveAttackInfo(endpointId, msg);
+                //onReceiveAttackInfo(endpoint, msg);
                 break;
             case GameMessage.GAME_MESSAGE_TYPE_QUESTION:
                 onReceiveQuestion(msg);
@@ -1114,241 +767,105 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    private void onReceivePlayerInfo(String endpointId, GameMessage msg) {
+    private void onReceivePlayerInfo(Endpoint endpoint, GameMessage msg) {
         Log.d(TAG, "onReceivePlayerInfo");
-        // The first time we receive a player's info, we add it to the UI
-        boolean newPlayer = false;
-        Player player = getPlayerByName(msg.playerInfo.name);
-        if (player == null) {
-            // Check if we already reached the maximum number of players
-            if (otherPlayers.size() == MAX_PLAYERS) {
-                connectionsClient.disconnectFromEndpoint(endpointId);
-                if (isTaskMaster)
-                    connectionsClient.stopAdvertising();
-                else
-                    connectionsClient.stopDiscovery();
-                return;
-            }
-            newPlayer = true;
-            addPlayer(endpointId, msg.playerInfo.character, msg.playerInfo.name);
-            player = getPlayerByName(msg.playerInfo.name);
-        }
+        Player player;
 
-        // Don't listen to what other players think their health is. Only taskmaster knows the truth
-        if (!isTaskMaster) {
-            player.setHealth(msg.playerInfo.health);
-        }
-        player.setCombatMode(msg.playerInfo.battle);
-        updateOtherPlayersUi();
-
-        if (isTaskMaster) {
-            if (newPlayer) {
-                // Inform the newly-added player of the other current players
-                sendPlayerDetails(endpointId, me);
-                for (Player other: otherPlayers) {
-                    if (!endpointId.equals(other.getEndpointId())) {
-                        sendPlayerDetails(endpointId, other);
-                    }
-                }
-            }
-            // Forward the message to the other players (except the sender)
-            for (String recipient : mEstablishedConnections.keySet()) {
-                if (!endpointId.equals(recipient)) {
-                    sendMessage(recipient, msg);
-                }
-            }
-        }
-    }
-
-    private void onReceiveAttackInfo(String endpointId, GameMessage msg) {
-        if (!isTaskMaster) {
-            Log.e(TAG, "Only taskmaster receives attack requests");
-            return;
-        }
-        Player attacker = getPlayerByEndpoint(endpointId);
-        Player victim = getPlayerByName(msg.attackInfo.victim);
-        if (attacker == null || victim == null) {
-            return;
-        }
-        attacker.attack(victim);
-        broadcastPlayerDetails(victim);
-        if (victim == me) {
+        if (msg.playerInfo.uniqueId.equals(me.getUniqueID())) {
+            player = me;
+            player.setPlayerDetails(msg);
             updateLocalPlayerUi();
+            if (me.getPoints() == 0) {
+                //TODO disable attack?
+            }
         } else {
-            updateOtherPlayersUi();
+            player = mPlayersViewAdapter.getPlayer(msg.playerInfo.endpointId);
+            // The first time we receive a player's info, we add it to the UI
+            if (player == null) {
+                player = new Player(this);
+                player.setPlayerDetails(msg);
+                mPlayersViewAdapter.add(player);
+            } else {
+                player.setPlayerDetails(msg);
+                mPlayersViewAdapter.notifyDataSetChanged();
+            }
         }
     }
 
     private void onReceiveQuestion(GameMessage msg) {
         Log.d(TAG, "onReceiveQuestion");
         QuizPool.Entry entry = msg.questionInfo.entry;
-        setQuestion(entry);
-    }
+        questionText.setText(entry.question);
 
-    private Player getPlayerByEndpoint(String endpointId) {
-        if (me.getEndpointId().equals(endpointId)) {
-            return me;
+        // We clear-out the old buttons, and create new ones for the current question
+        answersLayout.removeAllViews();
+        for (QuizPool.Answer answer : entry.answers) {
+            Button button = new Button(this);
+            button.setText(answer.text);
+            button.setTag(R.id.id_answer, answer);
+            button.setOnClickListener(this);
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            lp.gravity = Gravity.CENTER;
+            button.setLayoutParams(lp);
+            answersLayout.addView(button);
         }
-        for (Player player: otherPlayers) {
-            if (player.getEndpointId().equals(endpointId)) {
-                return player;
-            }
-        }
-        return null;
-    }
-
-    private Player getPlayerByName(String name) {
-        if (me.getName().equals(name)) {
-            return me;
-        }
-        for (Player player: otherPlayers) {
-            if (player.getName().equals(name)) {
-                return player;
-            }
-        }
-        return null;
+        // In case we just started the game...
+        buttonQuestion.setVisibility(View.VISIBLE);
+        buttonAnswers.setVisibility(View.VISIBLE);
+        buttonBattle.setVisibility(View.VISIBLE);
     }
 
     private void broadcastMessage(GameMessage msg) {
         Log.d(TAG, "broadcastMessage");
-        for (String endpointId : mEstablishedConnections.keySet()) {
-            sendMessage(endpointId, msg);
-        }
-        if (isTaskMaster) {
-            switch (msg.getType()) {
-                case GameMessage.GAME_MESSAGE_TYPE_PLAYER_INFO:
-                    break;
-                case GameMessage.GAME_MESSAGE_TYPE_QUESTION:
-                    for (Player player : otherPlayers) {
-                        if (player.isFake()) {
-                            handler.postDelayed(new Runnable() {
-                                @Override
-                                public void run() {
-                                    fakePlayerAnswer();
-                                }
-                            }, 3000);
-                            break;
-                        }
-                    }
-                    break;
-            }
-        }
+        send(Payload.fromBytes(msg.toBytes()));
     }
 
-    private void sendMessage(String endpointId, GameMessage msg) {
-        connectionsClient.sendPayload(endpointId, Payload.fromBytes(msg.toBytes()));
+    private void sendPlayerDetails() {
+        Log.d(TAG, "sendPlayerDetails");
+        GameMessage msg = me.getPlayerDetails();
+        send(Payload.fromBytes(msg.toBytes()));
     }
 
-    private void broadcastPlayerDetails(Player player) {
-        Log.d(TAG, "broadcastPlayerDetails" + player.getName());
-        for (String endpointId : mEstablishedConnections.keySet()) {
-            sendPlayerDetails(endpointId, player);
-        }
+    private void cleanupAndDisconnectEndpoint(Endpoint endpoint) {
+        disconnect(endpoint);
+        removePlayer(endpoint.getName());
     }
 
-    private void sendPlayerDetails(String endpointId, Player player) {
-        Log.d(TAG, "sendPlayerDetails" + player.getName());
-        GameMessage msg = new GameMessage();
-        msg.setType(GameMessage.GAME_MESSAGE_TYPE_PLAYER_INFO);
-        msg.playerInfo.name = player.getName();
-        msg.playerInfo.character = player.getCharacterName();
-        msg.playerInfo.health = player.getHealth();
-        msg.playerInfo.battle = player.getCombatMode();
-        sendMessage(endpointId, msg);
-    }
+    // --- A bunch of functions used by the connection callbacks ----
 
-    private void cleanupAndDisconnectEndpoint(String endpointId) {
-        String name = mEstablishedConnections.get(endpointId);
-        connectionsClient.disconnectFromEndpoint(endpointId);
-        mEstablishedConnections.remove(endpointId);
-        removePlayer(name);
-    }
-
-    // --- A bunch of "Internal" functions used by the connection callbacks ----
-
-    /**
-     * This is called when a device finds the taskmaster
-     * @param endpointId a unique string representing the endpoint found (taskmaster)
-     * @param info (unused)
-     */
-    private void onEndpointFoundInternal(String endpointId, DiscoveredEndpointInfo info) {
+    @Override
+    protected void onEndpointDiscovered(Endpoint endpoint) {
         Log.i(TAG, "Found taskmaster");
         // Immediately request connection and stop looking
-        connectionsClient.requestConnection(me.getName(), endpointId, connectionLifecycleCallback);
-        connectionsClient.stopDiscovery();
+        connectToEndpoint(endpoint);
+        stopDiscovering();
     }
 
-    /**
-     * This is called when the device looses the taskmaster
-     * @param endpointId (unused)
-     */
-    private void onEndpointLostInternal(String endpointId) {
-        Log.e(TAG, "Lost taskmaster!");
-        finish();
-    }
-
-    private void onConnectionInitiatedInternal(String endpointId, ConnectionInfo connectionInfo) {
-        if (isTaskMaster) {
-            if (me.getName().equals(connectionInfo.getEndpointName())) {
-                Log.e(TAG, "This game is too small for both of us " + connectionInfo.getEndpointName());
-                connectionsClient.rejectConnection(endpointId);
-                return;
-            }
-            for (Player player : otherPlayers) {
-                if (player.getName().equals(connectionInfo.getEndpointName())) {
-                    Log.e(TAG, "Sorry, we already have a player named " + connectionInfo.getEndpointName());
-                    connectionsClient.rejectConnection(endpointId);
-                    return;
-                }
-            }
-        }
+    @Override
+    protected void onConnectionInitiated(Endpoint endpoint, ConnectionInfo connectionInfo) {
         Log.i(TAG, "onConnectionInitiated: accepting connection");
-        connectionsClient.acceptConnection(endpointId, payloadCallback);
-        mPendingConnections.put(endpointId, connectionInfo.getEndpointName());
+        acceptConnection(endpoint);
+        questionText.setText("Connecting to taskmaster...");
+        buttonStartGame.setVisibility(View.GONE);
     }
 
-    private void onConnectionResultInternal(String endpointId, ConnectionResolution result) {
-        if (result.getStatus().isSuccess()) {
-            Log.i(TAG, "onConnectionResult: connection successful");
-            mEstablishedConnections.put(endpointId, mPendingConnections.remove(endpointId));
-            // Once the connection is established, we send our player info to the taskmaster
-            if (!isTaskMaster) {
-                broadcastPlayerDetails(me);
-            }
-        } else {
-            Log.i(TAG, "onConnectionResult: connection failed");
-            mPendingConnections.remove(endpointId);
-        }
+    @Override
+    protected void onEndpointConnected(Endpoint endpoint) {
+        Log.i(TAG, "onEndpointConnected: connection successful");
+        // Once the connection is established, we send our player info to the taskmaster
+        questionText.setText("Connected, waiting for game to begin...");
+        sendPlayerDetails();
+    }
+
+    @Override
+    protected void onConnectionFailed(Endpoint endpoint) {
+        questionText.setText("Connection failed, but let's keep looking for taskmaster...");
+        buttonStartGame.setVisibility(View.VISIBLE);
+        startDiscovering();
     }
 
     private void onDisconnectedInternal(String endpointId) {
-        if (isTaskMaster) {
-            Player player;
-            for (int i = 0; i < otherPlayers.size(); i++) {
-                player = otherPlayers.get(i);
-                if (player.getName().equals(mEstablishedConnections.get(endpointId))) {
-                    player.setHealth(0);
-                    victim_container = (LinearLayout) otherPlayersLayout.getChildAt(i);
-                    ImageButton imageButton = (ImageButton) victim_container.getChildAt(0);
-                    imageButton.setImageResource(player.getCharacter().getDeadImageId());
-                    ProgressBar healthBar = (ProgressBar) victim_container.getChildAt(2);
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                        healthBar.setProgress(0, true);
-                    } else {
-                        healthBar.setProgress(0);
-                    }
-                    handler.postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            removePlayer(victim.getName());
-                        }
-                    }, LONG_MESSAGE_DURATION_MS);
-                    break;
-                }
-            }
-        } else {
-            finish();
-        }
+        finish();
     }
 
     /**
@@ -1372,5 +889,25 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
         }
         Log.wtf(TAG, "All the permissions were accepted, let's retry now.");
         recreate();
+    }
+
+    @Override
+    protected String getName() {
+        return me.getName();
+    }
+
+    @Override
+    protected String getServiceId() {
+        return SERVICE_ID;
+    }
+
+    @Override
+    protected Strategy getStrategy() {
+        return null;
+    }
+
+    @Override
+    public void onClickPlayer(Player player) {
+        Log.v(TAG, "onClickPlayer: " + player.getName());
     }
 }

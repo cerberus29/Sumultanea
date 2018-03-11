@@ -45,7 +45,7 @@
 
     </LinearLayout>
 
-    <com.google.android.flexbox.FlexboxLayout
+    <GridView
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
         android:id="@+id/otherPlayersLayout"
@@ -55,238 +55,10 @@
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
-        app:flexWrap="wrap"
-        app:alignItems="baseline"
-        app:alignContent="flex_start"
         app:layout_constraintBottom_toTopOf="@id/contentsLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/localPlayerLayout">
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:orientation="vertical">
-
-            <ImageButton
-                android:layout_width="75dp"
-                android:layout_height="75dp"
-                android:adjustViewBounds="true"
-                android:scaleType="fitStart"
-                app:srcCompat="@drawable/bluepanda" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_horizontal"
-                android:text="Name" />
-
-            <ProgressBar
-                style="?android:attr/progressBarStyleHorizontal"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="8dp"
-                android:layout_marginRight="8dp"
-                android:progress="100" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <ImageButton
-                android:layout_width="75dp"
-                android:layout_height="75dp"
-                android:adjustViewBounds="true"
-                android:scaleType="fitStart"
-                app:srcCompat="@drawable/duel" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_horizontal"
-                android:text="Name" />
-
-            <ProgressBar
-                style="?android:attr/progressBarStyleHorizontal"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="8dp"
-                android:layout_marginRight="8dp"
-                android:progress="80" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <ImageButton
-                android:layout_width="75dp"
-                android:layout_height="75dp"
-                android:adjustViewBounds="true"
-                android:scaleType="fitStart"
-                app:srcCompat="@drawable/pump" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_horizontal"
-                android:text="Name" />
-
-            <ProgressBar
-                style="?android:attr/progressBarStyleHorizontal"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="8dp"
-                android:layout_marginRight="8dp"
-                android:progress="30" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <ImageButton
-                android:layout_width="75dp"
-                android:layout_height="75dp"
-                android:adjustViewBounds="true"
-                android:scaleType="fitStart"
-                app:srcCompat="@drawable/war" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_horizontal"
-                android:text="Name" />
-
-            <ProgressBar
-                style="?android:attr/progressBarStyleHorizontal"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="8dp"
-                android:layout_marginRight="8dp"
-                android:progress="10" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:orientation="vertical">
-
-            <ImageButton
-                android:layout_width="75dp"
-                android:layout_height="75dp"
-                android:adjustViewBounds="true"
-                android:scaleType="fitStart"
-                app:srcCompat="@drawable/bluepanda" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_horizontal"
-                android:text="Name" />
-
-            <ProgressBar
-                style="?android:attr/progressBarStyleHorizontal"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="8dp"
-                android:layout_marginRight="8dp"
-                android:progress="100" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <ImageButton
-                android:layout_width="75dp"
-                android:layout_height="75dp"
-                android:adjustViewBounds="true"
-                android:scaleType="fitStart"
-                app:srcCompat="@drawable/duel" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_horizontal"
-                android:text="Name" />
-
-            <ProgressBar
-                style="?android:attr/progressBarStyleHorizontal"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="8dp"
-                android:layout_marginRight="8dp"
-                android:progress="80" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <ImageButton
-                android:layout_width="75dp"
-                android:layout_height="75dp"
-                android:adjustViewBounds="true"
-                android:scaleType="fitStart"
-                app:srcCompat="@drawable/pump" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_horizontal"
-                android:text="Name" />
-
-            <ProgressBar
-                style="?android:attr/progressBarStyleHorizontal"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="8dp"
-                android:layout_marginRight="8dp"
-                android:progress="30" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <ImageButton
-                android:layout_width="75dp"
-                android:layout_height="75dp"
-                android:adjustViewBounds="true"
-                android:scaleType="fitStart"
-                app:srcCompat="@drawable/war" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_horizontal"
-                android:text="Name" />
-
-            <ProgressBar
-                style="?android:attr/progressBarStyleHorizontal"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="8dp"
-                android:layout_marginRight="8dp"
-                android:progress="10" />
-
-        </LinearLayout>
-    </com.google.android.flexbox.FlexboxLayout>
+        app:layout_constraintTop_toBottomOf="@id/localPlayerLayout" />
 
     <FrameLayout
         android:id="@+id/contentsLayout"
@@ -384,6 +156,13 @@
         app:layout_constraintTop_toTopOf="@id/contentsLayout">
 
         <Button
+            android:id="@+id/buttonStartGame"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/single_player_game"
+            android:onClick="onClickStartGame" />
+
+        <Button
             android:id="@+id/buttonQuestion"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -406,21 +185,6 @@
             android:onClick="showBattleOptions"
             android:text="@string/battle"
             android:visibility="gone" />
-
-        <Button
-            android:id="@+id/buttonStartGame"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:onClick="buttonStartGameClicked"
-            android:text="@string/start_game"
-            android:enabled="false" />
-
-        <Button
-            android:id="@+id/buttonAddFakePlayer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:onClick="addFakePlayer"
-            android:text="@string/add_virtual_player" />
     </LinearLayout>
 
     <ImageView

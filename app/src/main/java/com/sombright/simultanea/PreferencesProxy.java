@@ -14,11 +14,13 @@ class PreferencesProxy {
     private static final String PREF_MULTI_PLAYER_MASTER = "multiPlayerMaster";
     private static final String PREF_MULTI_PLAYER_ALIAS = "multiPlayerAlias";
     private static final String PREF_CHARACTER = "character";
+    private static final String PREF_USE_OPEN_TRIVIA_DB = "useOpenTriviaDatabase";
     // Default values
     private static final boolean DEFAULT_MULTI_PLAYER_MODE = false;
     private static final boolean DEFAULT_MULTI_PLAYER_MASTER = false;
     private static final String DEFAULT_MULTI_PLAYER_ALIAS = "Player";
     private static final String DEFAULT_CHARACTER = null;
+    private static final boolean DEFAULT_USE_OPEN_TRIVIA_DB = false;
 
     private Context mContext;
     private SharedPreferences mPrefs;
@@ -79,6 +81,16 @@ class PreferencesProxy {
     void setCharacter(String alias) {
         SharedPreferences.Editor editor = mPrefs.edit();
         editor.putString(PREF_CHARACTER, alias);
+        editor.apply();
+    }
+
+    boolean shouldUseOpenTriviaDatabase() {
+        return mPrefs.getBoolean(PREF_USE_OPEN_TRIVIA_DB, DEFAULT_USE_OPEN_TRIVIA_DB);
+    }
+
+    void setUseOpenTriviaDatabase(boolean enabled) {
+        SharedPreferences.Editor editor = mPrefs.edit();
+        editor.putBoolean(PREF_USE_OPEN_TRIVIA_DB, enabled);
         editor.apply();
     }
 }

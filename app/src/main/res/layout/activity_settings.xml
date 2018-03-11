@@ -8,44 +8,72 @@
     android:background="@drawable/skyisland"
     tools:context="com.sombright.simultanea.SettingsActivity">
 
-    <Switch
-        android:id="@+id/multiPlayerMasterSwitch"
+    <android.support.constraint.ConstraintLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="32dp"
         android:layout_marginLeft="32dp"
         android:layout_marginRight="32dp"
         android:layout_marginTop="32dp"
         android:background="#cc000000"
-        android:text="@string/multiPlayerMaster"
-        app:layout_constraintBottom_toTopOf="@id/multiPlayerAlias"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent">
 
-    <TextView
-        android:id="@+id/multiPlayerAliasLabel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="32dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginTop="8dp"
-        android:text="Player Name"
-        app:layout_constraintBottom_toBottomOf="@id/multiPlayerAlias"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toLeftOf="@id/multiPlayerAlias"
-        app:layout_constraintTop_toTopOf="@+id/multiPlayerAlias" />
+        <Switch
+            android:id="@+id/multiPlayerMasterSwitch"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            android:text="@string/multiPlayerMaster"
+            app:layout_constraintBottom_toTopOf="@id/multiPlayerAlias"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_chainStyle="packed" />
 
-    <EditText
-        android:id="@+id/multiPlayerAlias"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="32dp"
-        android:ems="10"
-        android:inputType="textPersonName"
-        android:text="Player"
-        app:layout_constraintLeft_toRightOf="@id/multiPlayerAliasLabel"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/multiPlayerMasterSwitch"
-        app:layout_constraintBottom_toBottomOf="parent" />
+        <TextView
+            android:id="@+id/multiPlayerAliasLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:text="Player Name"
+            app:layout_constraintBottom_toBottomOf="@id/multiPlayerAlias"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toLeftOf="@id/multiPlayerAlias"
+            app:layout_constraintTop_toTopOf="@+id/multiPlayerAlias" />
+
+        <EditText
+            android:id="@+id/multiPlayerAlias"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:ems="10"
+            android:inputType="textPersonName"
+            android:text="Player"
+            android:imeOptions="actionDone"
+            app:layout_constraintBottom_toTopOf="@id/openTriviaSwitch"
+            app:layout_constraintLeft_toRightOf="@id/multiPlayerAliasLabel"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/multiPlayerMasterSwitch" />
+
+        <Switch
+            android:id="@+id/openTriviaSwitch"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            android:text="Use Open Trivia Database"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/multiPlayerAlias" />
+
+    </android.support.constraint.ConstraintLayout>
 
 </android.support.constraint.ConstraintLayout>
