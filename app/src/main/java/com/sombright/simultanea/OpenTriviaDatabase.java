@@ -551,7 +551,7 @@ class OpenTriviaDatabase {
                 }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                Log.wtf(TAG, "Error while fetching categories: " + error);
+                Log.wtf(TAG, "Error while fetching questions: " + error);
                 scheduleRetryFetchQuestions(category, num);
             }
         });

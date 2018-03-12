@@ -54,7 +54,10 @@ class GameMessage {
     PlayerInfo playerInfo;
 
     static class AttackInfo extends MessageInfo {
-        String victim;
+        String attackerId;
+        String victimId;
+        boolean defending;
+        boolean killed;
         AttackInfo() {
             super(GAME_MESSAGE_TYPE_ATTACK);
         }

@@ -177,21 +177,21 @@ public class TaskMasterActivity extends ConnectionsActivity implements PlayersVi
                 onReceiveAnswer(endpoint, msg);
                 break;
             case GameMessage.GAME_MESSAGE_TYPE_ATTACK:
-                //onReceiveAttackInfo(endpoint, msg);
+                onReceiveAttackInfo(endpoint, msg);
                 break;
         }
     }
 
     private void onReceivePlayerInfo(Endpoint endpoint, GameMessage msg) {
         Log.d(TAG, "onReceivePlayerInfo");
-        Player player = mPlayersViewAdapter.getPlayer(endpoint.getId());
+        Player player = mPlayersViewAdapter.getPlayerByEndpointId(endpoint.getId());
         player.setCharacter(msg.playerInfo.character);
         broadcastMessage(msg);
     }
 
     private void onReceiveAnswer(Endpoint endpoint, GameMessage msg) {
         Log.d(TAG, "onReceiveAnswer");
-        Player player = mPlayersViewAdapter.getPlayer(endpoint.getId());
+        Player player = mPlayersViewAdapter.getPlayerByEndpointId(endpoint.getId());
         player.setAnswered(true);
         if (msg.answerInfo.correct) {
             player.setPoints(player.getPoints() + 1);
@@ -203,6 +203,37 @@ public class TaskMasterActivity extends ConnectionsActivity implements PlayersVi
         Log.d(TAG, "sendPlayerDetails" + player.getName());
         GameMessage msg = player.getPlayerDetails();
         send(Payload.fromBytes(msg.toBytes()));
+    }
+
+    private void onReceiveAttackInfo(Endpoint endpoint, GameMessage msg) {
+        Log.d(TAG, "onReceiveAttack");
+        Player player = mPlayersViewAdapter.getPlayerByEndpointId(endpoint.getId());
+        Player victim = mPlayersViewAdapter.getPlayer(msg.attackInfo.victimId);
+
+        // Calculate results and inform both parties
+        msg.attackInfo.attackerId = player.getUniqueID();
+        msg.attackInfo.defending = victim.getCombatMode() == Player.COMBAT_MODE_DEFEND;
+        int damage = player.getCharacter().getAttack();
+        if (msg.attackInfo.defending) {
+            damage -= victim.getCharacter().getDefense();
+        }
+        if (damage < 0) {
+            damage = 0;
+        }
+        int victimHealth = victim.getHealth() - damage;
+        if (victimHealth <= 0) {
+            victim.setHealth(0);
+            msg.attackInfo.killed = true;
+        } else {
+            victim.setHealth(victimHealth);
+        }
+        // Attacking is not free...
+        player.setPoints(player.getPoints()-1);
+        // Send attack details
+        send(Payload.fromBytes(msg.toBytes()));
+        // Send updated player info
+        sendPlayerDetails(victim);
+        sendPlayerDetails(player);
     }
 
     /**

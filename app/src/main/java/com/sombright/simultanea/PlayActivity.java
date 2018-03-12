@@ -61,7 +61,7 @@ import java.util.Random;
 
 import static com.sombright.simultanea.MainActivity.TAG;
 
-public class PlayActivity extends ConnectionsActivity implements View.OnClickListener, PlayersViewAdapter.OnClickPlayerListener {
+public class PlayActivity extends ConnectionsActivity implements View.OnClickListener, PlayersViewAdapter.OnClickPlayerListener, OpenTriviaDatabase.Listener {
 
     private final static int STATE_WAITING_FOR_PLAYERS = 1;
     private final static int STATE_WAITING_FOR_QUESTION = 2;
@@ -95,8 +95,9 @@ public class PlayActivity extends ConnectionsActivity implements View.OnClickLis
     private TextView textViewLocalPlayer;
     private ProgressBar localPlayerHealth;
     private ImageView localPlayerThumb;
-    private ImageView localPlayerAnimation, otherPlayerAnimation;
+    private ImageView leftAnimation, rightAnimation;
     private Button buttonStartGame, buttonQuestion, buttonAnswers, buttonBattle;
+    private boolean singlePlayerMode = false;
     private Button buttonHeal, buttonAttack, buttonDefend;
     private Handler handler = new Handler();
     private MediaPlayer mMusic;
@@ -104,16 +105,26 @@ public class PlayActivity extends ConnectionsActivity implements View.OnClickLis
     // Some variables we need to keep for the zoom-out animation
     private ImageView mOtherPlayerThumb;
     private Player mOtherPlayer;
-    private Runnable mDoThisAfterAnimation;
     private boolean mWinBattle;
     // Translation and scale factors
-    private PointF localPlayerStartScale = new PointF();
-    private PointF otherPlayerStartScale = new PointF();
-    private PointF localPlayerStartTranslation = new PointF();
-    private PointF otherPlayerStartTranslation = new PointF();
+    class ZoomAnimationData {
+        ImageView thumb;
+        ImageView big;
+        PointF startScale = new PointF();
+        PointF startTranslation = new PointF();
+    }
+    class AttackAnimationData {
+        Player attacker, victim;
+        boolean kill;
+        ZoomAnimationData left = new ZoomAnimationData();
+        ZoomAnimationData right = new ZoomAnimationData();
+    }
+    private AttackAnimationData mAttackAnimationData = null;
     private int mShortAnimationDuration = 500;
-    private Player victim = null;
-    private LinearLayout victim_container = null;
+    private PreferencesProxy mPrefs;
+
+    private QuizPool quizPool = null;
+    private OpenTriviaDatabase opentdb = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -139,14 +150,14 @@ public class PlayActivity extends ConnectionsActivity implements View.OnClickLis
                 actionBar.hide();
         }
 
-        PreferencesProxy prefs = new PreferencesProxy(this);
+        mPrefs = new PreferencesProxy(this);
 
         // Retrieve a copy of the settings (cannot change during the game)
-        String name = prefs.getMultiPlayerAlias();
+        String name = mPrefs.getMultiPlayerAlias();
 
         me = new Player(this);
         me.setName(name);
-        me.setCharacter(prefs.getCharacter());
+        me.setCharacter(mPrefs.getCharacter());
         Log.d(TAG, "Playing as character " + me.getCharacter());
 
         // Apply the initial layout (we will modify below)
@@ -158,8 +169,8 @@ public class PlayActivity extends ConnectionsActivity implements View.OnClickLis
         battleOptionsLayout = findViewById(R.id.battleOptionsLayout);
         otherPlayersLayout = findViewById(R.id.otherPlayersLayout);
         textViewLocalPlayer = findViewById(R.id.textViewLocalPlayer);
-        localPlayerAnimation = findViewById(R.id.localPlayerAnimation);
-        otherPlayerAnimation = findViewById(R.id.otherPlayerAnimation);
+        leftAnimation = findViewById(R.id.leftAnimation);
+        rightAnimation = findViewById(R.id.rightAnimation);
 
         buttonStartGame = findViewById(R.id.buttonStartGame);
         buttonQuestion = findViewById(R.id.buttonQuestion);
@@ -188,6 +199,7 @@ public class PlayActivity extends ConnectionsActivity implements View.OnClickLis
         fadeOutAnimation.setRepeatMode(Animation.REVERSE);
         // Remove the fake content we put in the initial layout (for designing)
         mPlayersViewAdapter = new PlayersViewAdapter(this, R.layout.players_example_item, this);
+        otherPlayersLayout.setAdapter(mPlayersViewAdapter);
 
         questionText.setText(R.string.waiting_for_master);
         answersLayout.removeAllViews();
@@ -228,38 +240,6 @@ public class PlayActivity extends ConnectionsActivity implements View.OnClickLis
         stopAllEndpoints();
         super.onStop();
     }
-/*
-    public void addFakePlayer(View v) {
-        Log.d(TAG, "addFakePlayer");
-        // Find a unique name
-        String characterName = null, playerName = null;
-        int num = 0; // Add a number when the name already exists
-        Player player = null;
-        do {
-            num++;
-            for (Character character: CharacterPool.charactersList) {
-                characterName = character.getName(PlayActivity.this);
-                playerName = characterName;
-                if (num > 1) {
-                    playerName += " " + num;
-                }
-                player = getPlayerByName(playerName);
-                if (player == null) {
-                    break;
-                }
-            }
-        } while (player != null);
-        addPlayer("", characterName, playerName);
-    }
-*/
-    private void addPlayer(Endpoint endpoint, String character, String name) {
-        Log.d(TAG, "addPlayer");
-        Player player = new Player(this);
-        player.setEndpoint(endpoint);
-        player.setCharacter(character);
-        player.setName(name);
-        mPlayersViewAdapter.add(player);
-    }
 
     private void updateLocalPlayerUi() {
         Log.d(TAG, "updateLocalPlayerUi");
@@ -279,6 +259,12 @@ public class PlayActivity extends ConnectionsActivity implements View.OnClickLis
                 localPlayerHealth.setProgress(me.getHealth());
             }
         }
+        if (me.getPoints() == 0) {
+            //TODO disable attack?
+            buttonAttack.setEnabled(false);
+        } else {
+            buttonAttack.setEnabled(true);
+        }
     }
 
     // Go through a sub-tree of views and call setEnabled on every leaf (views)
@@ -295,6 +281,112 @@ public class PlayActivity extends ConnectionsActivity implements View.OnClickLis
     public void onClickStartGame(View view) {
         Log.d(TAG, "onClickStartGame");
         stopDiscovering();
+        buttonStartGame.setVisibility(View.GONE);
+        singlePlayerMode = true;
+        for (int i = 0; i < 5; i++) {
+            // Find a unique name
+            String characterName = null, playerName = null;
+            int num = 0; // Add a number when the name already exists
+            Player player = null;
+            do {
+                num++;
+                for (Character character : CharacterPool.charactersList) {
+                    characterName = character.getName(PlayActivity.this);
+                    playerName = characterName;
+                    if (num > 1) {
+                        playerName += " " + num;
+                    }
+                    player = mPlayersViewAdapter.getPlayerByName(playerName);
+                    if (player == null) {
+                        break;
+                    }
+                }
+            } while (player != null);
+            player = new Player(this);
+            player.setName(playerName);
+            player.setCharacter(characterName);
+            GameMessage msg = player.getPlayerDetails();
+            onReceive(null, Payload.fromBytes(msg.toBytes()));
+        }
+
+        if (mPrefs.shouldUseOpenTriviaDatabase()) {
+            opentdb = new OpenTriviaDatabase(this);
+            opentdb.setQuestionAttributes(OpenTriviaDatabase.CATEGORY_ANY,
+                    OpenTriviaDatabase.DIFFICULTY_ANY,
+                    OpenTriviaDatabase.TYPE_ANY);
+            opentdb.setListener(this);
+        } else {
+            quizPool = new QuizPool(this);
+        }
+        pickQuestion();
+    }
+
+    private void pickQuestion() {
+        me.setAnswered(false);
+        mPlayersViewAdapter.setAnswered(false);
+        QuizPool.Entry entry;
+        if (opentdb != null) {
+            OpenTriviaDatabase.Question question = opentdb.getQuestion();
+            if (question == null) {
+                // We'll come back later in onQuestionsAvailable callback
+                waitingForQuestion = true;
+                return;
+            }
+            // Convert to QuizPool.Question
+            int type;
+            switch (question.type) {
+                case OpenTriviaDatabase.TYPE_MULTIPLE_CHOICE:
+                    type = QuizPool.TYPE_MULTIPLE_CHOICE;
+                    break;
+                case OpenTriviaDatabase.TYPE_TRUE_OR_FALSE:
+                    type = QuizPool.TYPE_TRUE_FALSE;
+                    break;
+                default:
+                    Log.e(TAG, "Unknown question type " + question.type);
+                    type = QuizPool.TYPE_MULTIPLE_CHOICE;
+                    break;
+            }
+            List<QuizPool.Answer> answers = new ArrayList<>();
+            for (String answer: question.incorrect_answers)
+                answers.add(new QuizPool.Answer(answer, false));
+            answers.add(random.nextInt(answers.size()),
+                    new QuizPool.Answer(question.correct_answer, true));
+            entry = new QuizPool.Entry(question.question, type, answers);
+        } else {
+            entry = quizPool.getQuestion();
+        }
+        GameMessage msg = new GameMessage();
+        msg.setType(GameMessage.GAME_MESSAGE_TYPE_QUESTION);
+        msg.questionInfo.entry = entry;
+        onReceive(null, Payload.fromBytes(msg.toBytes()));
+        // Fake receiving updates from taskmaster as other players answered
+        for (int i = 0; i < mPlayersViewAdapter.getCount(); i++) {
+            final Player player = mPlayersViewAdapter.getItem(i);
+            if (player == null) {
+                continue;
+            }
+            // Simulate other players answering within 0-10 seconds
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    // TODO: vary the likeliness that the player answered correctly based on the character
+                    boolean correct = random.nextBoolean();
+                    // Player sends their answer to tasks master...
+                    player.setAnswered(true);
+                    // Taskmaster adjusts player info
+                    if (correct) {
+                        player.setPoints(player.getPoints()+1);
+                        // Taskmaster sends player info
+                        GameMessage msg = player.getPlayerDetails();
+                        onReceive(null, Payload.fromBytes(msg.toBytes()));
+                    }
+                    // Taskmaster picks another question
+                    if (me.hasAnswered() && mPlayersViewAdapter.hasEveryoneAnswered()) {
+                        pickQuestion();
+                    }
+                }
+            }, random.nextInt(10)*1000);
+        }
     }
 
     /**
@@ -315,7 +407,9 @@ public class PlayActivity extends ConnectionsActivity implements View.OnClickLis
     public void abortCombatMode() {
         if (me.getCombatMode() != Player.COMBAT_MODE_ATTACK) {
             mPlayersViewAdapter.setClickable(false);
-            buttonAttack.setEnabled(true);
+            if (me.getPoints() != 0) {
+                buttonAttack.setEnabled(true);
+            }
             buttonDefend.setEnabled(true);
             buttonHeal.setEnabled(true);
             me.setCombatMode(Player.COMBAT_MODE_NONE);
@@ -363,7 +457,9 @@ public class PlayActivity extends ConnectionsActivity implements View.OnClickLis
                 updateLocalPlayerUi();
                 sendPlayerDetails();
                 buttonHeal.setEnabled(true);
-                buttonAttack.setEnabled(true);
+                if (me.getPoints() != 0) {
+                    buttonAttack.setEnabled(true);
+                }
                 buttonDefend.setEnabled(true);
             }
         }, cooldown);
@@ -387,7 +483,9 @@ public class PlayActivity extends ConnectionsActivity implements View.OnClickLis
                 updateLocalPlayerUi();
                 sendPlayerDetails();
                 buttonHeal.setEnabled(true);
-                buttonAttack.setEnabled(true);
+                if (me.getPoints() != 0) {
+                    buttonAttack.setEnabled(true);
+                }
                 buttonDefend.setEnabled(true);
             }
         }, cooldown);
@@ -403,27 +501,49 @@ public class PlayActivity extends ConnectionsActivity implements View.OnClickLis
         sendPlayerDetails();
     }
 
+    private void animateAttack(Player attacker, Player victim, boolean defending, boolean killed) {
+        final AttackAnimationData data = new AttackAnimationData();
+
+        data.attacker = attacker;
+        data.victim = victim;
+        data.kill = killed;
+
+        if (attacker == me) {
+            data.left.thumb = localPlayerThumb;
+        } else {
+            int position = mPlayersViewAdapter.getPosition(attacker);
+            LinearLayout item = (LinearLayout) otherPlayersLayout.getChildAt(position);
+            data.left.thumb = (ImageView) item.getChildAt(0);
+        }
+        data.left.big = leftAnimation;
+
+        if (victim == me) {
+            data.right.thumb = localPlayerThumb;
+        } else {
+            int position = mPlayersViewAdapter.getPosition(victim);
+            LinearLayout item = (LinearLayout) otherPlayersLayout.getChildAt(position);
+            data.right.thumb = (ImageView) item.getChildAt(0);
+        }
+        data.right.big = rightAnimation;
+
+        zoomImageFromThumb(data.left, null);
+        zoomImageFromThumb(data.right, new Runnable() {
+            @Override
+            public void run() {
+                doCharacterAnimation(data);
+            }
+        });
+    }
+
     /**
      * Zoom-in animation:
      * - hide the small thumbnail
      * - calculate the offset and scaling required to shrink the big animation image exactly over the thumbnail
      * - animate from the thumbnail position to the full-size animation position.
-     *
-     * @param otherPlayerThumb:     small image of the other player.
-     * @param otherPlayer:          other player data.
-     * @param doThisAfterAnimation: what to run when the animation is finished.
-     * @param winBattle:            true if I (local player) am the victor of the battle.
      */
-    private void zoomImageFromThumb(ImageView otherPlayerThumb, Player otherPlayer, Runnable doThisAfterAnimation, boolean winBattle) {
-        // Save the values, because we will need them in the zoom-out animation
-        mOtherPlayerThumb = otherPlayerThumb;
-        mOtherPlayer = otherPlayer;
-        mDoThisAfterAnimation = doThisAfterAnimation;
-        mWinBattle = winBattle;
-
+    private void zoomImageFromThumb(ZoomAnimationData data, Runnable endAction) {
         // Load the big zoom-in images (same as the small thumbnail images for now).
-        otherPlayerAnimation.setImageDrawable(otherPlayerThumb.getDrawable());
-        localPlayerAnimation.setImageDrawable(localPlayerThumb.getDrawable());
+        data.big.setImageDrawable(data.thumb.getDrawable());
 
         // Calculate the starting and ending bounds for the zoomed-in image.
         Rect startBounds = new Rect();
@@ -431,72 +551,46 @@ public class PlayActivity extends ConnectionsActivity implements View.OnClickLis
 
         // The start bounds are the global visible rectangle of the thumbnail,
         // and the final bounds are the global visible rectangle of the zoomed-in image.
-        mOtherPlayerThumb.getGlobalVisibleRect(startBounds);
-        otherPlayerAnimation.getGlobalVisibleRect(finalBounds);
+        data.thumb.getGlobalVisibleRect(startBounds);
+        data.big.getGlobalVisibleRect(finalBounds);
         // Calculate the transformations needed to make the big animation fit exactly on top of the thumbnail:
-        otherPlayerStartTranslation.x = startBounds.left - finalBounds.left;
-        otherPlayerStartTranslation.y = startBounds.top - finalBounds.top;
-        otherPlayerStartScale.x = (float) startBounds.width() / finalBounds.width();
-        otherPlayerStartScale.y = (float) startBounds.height() / finalBounds.height();
+        data.startTranslation.x = startBounds.left - finalBounds.left;
+        data.startTranslation.y = startBounds.top - finalBounds.top;
+        data.startScale.x = (float) startBounds.width() / finalBounds.width();
+        data.startScale.y = (float) startBounds.height() / finalBounds.height();
 
         // Hide the thumbnail and show the zoomed-in view. When the animation
         // begins, it will position the zoomed-in view in the place of the
         // thumbnails.
-        mOtherPlayerThumb.setAlpha(0f);
+        data.thumb.setAlpha(0f);
 
         // Apply translation and scale to cover the thumbnail
-        otherPlayerAnimation.setTranslationX(otherPlayerStartTranslation.x);
-        otherPlayerAnimation.setTranslationY(otherPlayerStartTranslation.y);
-        otherPlayerAnimation.setScaleX(otherPlayerStartScale.x);
-        otherPlayerAnimation.setScaleY(otherPlayerStartScale.y);
-        otherPlayerAnimation.setVisibility(View.VISIBLE);
+        data.big.setTranslationX(data.startTranslation.x);
+        data.big.setTranslationY(data.startTranslation.y);
+        data.big.setScaleX(data.startScale.x);
+        data.big.setScaleY(data.startScale.y);
+        data.big.setVisibility(View.VISIBLE);
+        data.big.bringToFront();
 
         // Set the pivot point for SCALE_X and SCALE_Y transformations
         // to the top-left corner of the zoomed-in view (the default
         // is the center of the view).
-        otherPlayerAnimation.setPivotX(0f);
-        otherPlayerAnimation.setPivotY(0f);
+        data.big.setPivotX(0f);
+        data.big.setPivotY(0f);
 
         // Construct and run the parallel animation of the four translation and
         // scale properties.
-        ViewPropertyAnimator anim = otherPlayerAnimation.animate();
+        ViewPropertyAnimator anim = data.big.animate();
         anim.translationX(0f);
         anim.translationY(0f);
         anim.scaleX(1f);
         anim.scaleY(1f);
         anim.setDuration(mShortAnimationDuration);
         anim.setInterpolator(new DecelerateInterpolator());
-        anim.start();
-
-        // Do the same thing for the local player animation
-        localPlayerThumb.getGlobalVisibleRect(startBounds);
-        localPlayerAnimation.getGlobalVisibleRect(finalBounds);
-        localPlayerStartTranslation.x = startBounds.left - finalBounds.left;
-        localPlayerStartTranslation.y = startBounds.top - finalBounds.top;
-        localPlayerStartScale.x = (float) startBounds.width() / finalBounds.width();
-        localPlayerStartScale.y = (float) startBounds.height() / finalBounds.height();
-        localPlayerThumb.setAlpha(0f);
-        localPlayerAnimation.setTranslationX(localPlayerStartTranslation.x);
-        localPlayerAnimation.setTranslationY(localPlayerStartTranslation.y);
-        localPlayerAnimation.setScaleX(localPlayerStartScale.x);
-        localPlayerAnimation.setScaleY(localPlayerStartScale.y);
-        localPlayerAnimation.setVisibility(View.VISIBLE);
-        localPlayerAnimation.setPivotX(0f);
-        localPlayerAnimation.setPivotY(0f);
-        anim = localPlayerAnimation.animate();
-        anim.translationX(0f);
-        anim.translationY(0f);
-        anim.scaleX(1f);
-        anim.scaleY(1f);
-        anim.setDuration(mShortAnimationDuration);
-        anim.setInterpolator(new DecelerateInterpolator());
-        // Schedule the next step at the end of the zoom-in animation
-        anim.withEndAction(new Runnable() {
-            @Override
-            public void run() {
-                doCharacterAnimation();
-            }
-        });
+        if (endAction != null) {
+            // Schedule the next step at the end of the zoom-in animation
+            anim.withEndAction(endAction);
+        }
         anim.start();
     }
 
@@ -505,136 +599,69 @@ public class PlayActivity extends ConnectionsActivity implements View.OnClickLis
      * The attacker and the victim images are now fully zoomed-in.
      * Time to play the attack and the hurt/death animations.
      */
-    private void doCharacterAnimation() {
-        // Start the battle animations now
-        Player victim, victor;
-        ImageView victimView, victorView;
-        if (mWinBattle) {
-            victim = mOtherPlayer;
-            victimView = otherPlayerAnimation;
-            victor = me;
-            victorView = localPlayerAnimation;
-        } else {
-            victim = me;
-            victor = mOtherPlayer;
-            victimView = localPlayerAnimation;
-            victorView = otherPlayerAnimation;
-        }
+    private void doCharacterAnimation(final AttackAnimationData data) {
         // Victim: select between hurt and death animations
         int resId;
-        if (victim.getHealth() > 0) {
-            resId = victim.getCharacter().getImageResourceHurt();
+        if (data.kill) {
+            resId = data.victim.getCharacter().getDeathAnimationId();
         } else {
-            resId = victim.getCharacter().getDeathAnimationId();
+            resId = data.victim.getCharacter().getImageResourceHurt();
         }
-        victimView.setImageResource(resId);
-        AnimationDrawable anim = (AnimationDrawable) victimView.getDrawable();
+        data.right.big.setImageResource(resId);
+        AnimationDrawable anim = (AnimationDrawable) data.right.big.getDrawable();
         anim.start();
-        // Victor: select attack animation
-        victorView.setImageResource(victor.getCharacter().getImageResourceAttack());
-        anim = (AnimationDrawable) victorView.getDrawable();
+        // Select attack animation
+        data.left.big.setImageResource(data.attacker.getCharacter().getImageResourceAttack());
+        anim = (AnimationDrawable) data.left.big.getDrawable();
         anim.start();
         // Let the hurt/death animation run for a certain time before zooming out
-        if (victim.getHealth() > 0) {
-            handler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    zoomImageBackToThumb();
-                }
-            }, 1000);
-        } else {
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                zoomImageBackToThumb(data.left, data.attacker.getCharacter(), false);
+                zoomImageBackToThumb(data.right, data.victim.getCharacter(), data.kill);
+            }
             // Death animation takes a bit longer
-            handler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    zoomImageBackToThumb();
-                }
-            }, 2000);
-        }
+        }, data.kill ? 2000: 1000);
     }
 
     /**
      * Zoom-out animation:
      * - Shrink the animation images back to the thumbnail position
      */
-    private void zoomImageBackToThumb() {
+    private void zoomImageBackToThumb(final ZoomAnimationData data, Character character, boolean dead) {
         // Stop the hurt or death animation
-        AnimationDrawable animationDrawable = (AnimationDrawable) otherPlayerAnimation.getDrawable();
+        AnimationDrawable animationDrawable = (AnimationDrawable) data.big.getDrawable();
         animationDrawable.stop();
         // Zoom-out with the dead image or normal image
-        if (mOtherPlayer.getHealth() == 0)
-            otherPlayerAnimation.setImageResource(mOtherPlayer.getCharacter().getDeadImageId());
+        if (dead)
+            data.big.setImageResource(character.getDeadImageId());
         else
-            otherPlayerAnimation.setImageDrawable(mOtherPlayerThumb.getDrawable());
+            data.big.setImageDrawable(data.thumb.getDrawable());
 
         // Animate the four positioning/sizing properties in parallel,
         // back to their original values.
-        ViewPropertyAnimator anim = otherPlayerAnimation.animate();
-        anim.translationX(otherPlayerStartTranslation.x);
-        anim.translationY(otherPlayerStartTranslation.y);
-        anim.scaleX(otherPlayerStartScale.x);
-        anim.scaleY(otherPlayerStartScale.y);
+        ViewPropertyAnimator anim = data.big.animate();
+        anim.translationX(data.startTranslation.x);
+        anim.translationY(data.startTranslation.y);
+        anim.scaleX(data.startScale.x);
+        anim.scaleY(data.startScale.y);
         anim.setDuration(mShortAnimationDuration);
         anim.setInterpolator(new DecelerateInterpolator());
-        anim.start();
-
-        // Same for local player
-        animationDrawable = (AnimationDrawable) localPlayerAnimation.getDrawable();
-        animationDrawable.stop();
-        if (me.getHealth() == 0)
-            localPlayerAnimation.setImageResource(me.getCharacter().getDeadImageId());
-        else
-            localPlayerAnimation.setImageDrawable(localPlayerThumb.getDrawable());
-        anim = localPlayerAnimation.animate();
-        anim.translationX(localPlayerStartTranslation.x);
-        anim.translationY(localPlayerStartTranslation.y);
-        anim.scaleX(localPlayerStartScale.x);
-        anim.scaleY(localPlayerStartScale.y);
-        anim.setDuration(mShortAnimationDuration);
-        anim.setInterpolator(new DecelerateInterpolator());
-        // Next step...
         anim.withEndAction(new Runnable() {
             @Override
             public void run() {
-                finishAnimation();
+                // Re-enable thumb view with the same image as the zoom-out animation
+                data.thumb.setImageDrawable(data.big.getDrawable());
+                data.thumb.setAlpha(1f);
+                data.big.setVisibility(View.INVISIBLE);
+                data.big.setTranslationX(0f);
+                data.big.setTranslationY(0f);
+                data.big.setScaleX(1f);
+                data.big.setScaleY(1f);
             }
         });
         anim.start();
-    }
-
-    /**
-     * After the zoom-out animation, we clean-up and re-enable the thumbnail.
-     */
-    private void finishAnimation() {
-        // Re-enable thumb view with the same image as the zoom-out animation
-        mOtherPlayerThumb.setImageDrawable(otherPlayerAnimation.getDrawable());
-        mOtherPlayerThumb.setAlpha(1f);
-        otherPlayerAnimation.setVisibility(View.INVISIBLE);
-        otherPlayerAnimation.setTranslationX(0f);
-        otherPlayerAnimation.setTranslationY(0f);
-        otherPlayerAnimation.setScaleX(1f);
-        otherPlayerAnimation.setScaleY(1f);
-        localPlayerThumb.setImageDrawable(localPlayerAnimation.getDrawable());
-        localPlayerThumb.setAlpha(1f);
-        localPlayerAnimation.setVisibility(View.INVISIBLE);
-        localPlayerAnimation.setTranslationX(0f);
-        localPlayerAnimation.setTranslationY(0f);
-        localPlayerAnimation.setScaleX(1f);
-        localPlayerAnimation.setScaleY(1f);
-        // Next step...
-        handler.post(mDoThisAfterAnimation);
-    }
-
-    private void announceDamage() {
-        if (me.getHealth() == 0) {
-            questionText.setText(R.string.game_over);
-            handler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    finishGame();
-                }
-            }, MESSAGE_DURATION_MS);
-        }
     }
 
     private void finishGame() {
@@ -644,21 +671,6 @@ public class PlayActivity extends ConnectionsActivity implements View.OnClickLis
 
     @Override
     public void onClick(View v) {
-        // Check if it was a player button
-        Player player = (Player) v.getTag(R.id.id_player);
-        if (player != null) {
-            mPlayersViewAdapter.setClickable(false);
-            GameMessage msg = new GameMessage();
-            msg.setType(GameMessage.GAME_MESSAGE_TYPE_ATTACK);
-            msg.attackInfo.victim = player.getName();
-            broadcastMessage(msg);
-            // TODO startAttackAnimation(player);
-            buttonHeal.setEnabled(true);
-            buttonAttack.setEnabled(true);
-            buttonDefend.setEnabled(true);
-            return;
-        }
-
         // Check if it was an answer button
         QuizPool.Answer answer = (QuizPool.Answer) v.getTag(R.id.id_answer);
         if (answer != null) {
@@ -674,64 +686,33 @@ public class PlayActivity extends ConnectionsActivity implements View.OnClickLis
                 questionText.setText(R.string.answer_incorrect);
                 v.setBackgroundColor(ColorUtils.setAlphaComponent(Color.RED, 150));
             }
-            GameMessage msg = new GameMessage();
-            msg.setType(GameMessage.GAME_MESSAGE_TYPE_ANSWER);
-            msg.answerInfo.correct = answer.correct;
-            send(Payload.fromBytes(msg.toBytes()));
+            if (singlePlayerMode) {
+                me.setAnswered(true);
+                if (answer.correct) {
+                    // Simulate task master sending us updated points
+                    me.setPoints(me.getPoints()+1);
+                    // Taskmaster sends player info
+                    GameMessage msg = me.getPlayerDetails();
+                    onReceive(null, Payload.fromBytes(msg.toBytes()));
+                }
+                if (mPlayersViewAdapter.hasEveryoneAnswered()) {
+                    handler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            pickQuestion();
+                        }
+                    }, 500);
+                }
+            } else {
+                GameMessage msg = new GameMessage();
+                msg.setType(GameMessage.GAME_MESSAGE_TYPE_ANSWER);
+                msg.answerInfo.correct = answer.correct;
+                send(Payload.fromBytes(msg.toBytes()));
+            }
             return;
         }
 
         Log.e(TAG, "Unhandled click on " + v);
-    }
-
-    private void attackOtherPlayer() {
-        if (victim.getHealth() == 0) {
-            String msg_without_victim = getString(R.string.attack_killed);
-            String msg_with_victim = String.format(msg_without_victim, victim.getName());
-            questionText.setText(msg_with_victim);
-            handler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    removePlayer(victim.getName());
-                }
-            }, MESSAGE_DURATION_MS);
-        }
-    }
-
-    private void removePlayer(String name) {
-        // Disable the victim
-        recursiveSetEnabled(false, victim_container);
-        // Check if we won
-        boolean everybodyDead = true;
-        for (int i = 0; i < mPlayersViewAdapter.getCount(); i++) {
-            final Player player = mPlayersViewAdapter.getItem(i);
-            if (player == null)
-                continue;
-            if (player.getHealth() != 0) {
-                everybodyDead = false;
-                MediaPlayer mediaPlayer = MediaPlayer.create(PlayActivity.this, R.raw.fail);
-                mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                    @Override
-                    public void onCompletion(MediaPlayer mediaPlayer) {
-                        mediaPlayer.release();
-                        mMusic.setVolume(1.0f, 1.0f);
-                    }
-                });
-                mMusic.setVolume(1.0f, 0.5f);
-                mediaPlayer.start();
-                break; // no need to continue, we have at least 1 opponent alive.
-
-            }
-        }
-        if (everybodyDead) {
-            questionText.setText(R.string.game_won);
-            handler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    finishGame();
-                }
-            }, LONG_MESSAGE_DURATION_MS);
-        }
     }
 
     /**
@@ -747,17 +728,13 @@ public class PlayActivity extends ConnectionsActivity implements View.OnClickLis
             return;
         }
         GameMessage msg = GameMessage.fromBytes(payload.asBytes());
-        if (msg == null) {
-            Log.e(TAG, "Cannot parse messages from endpoint " + endpoint.getName());
-            cleanupAndDisconnectEndpoint(endpoint);
-            return;
-        }
+        assert msg != null;
         switch (msg.getType()) {
             case GameMessage.GAME_MESSAGE_TYPE_PLAYER_INFO:
                 onReceivePlayerInfo(endpoint, msg);
                 break;
             case GameMessage.GAME_MESSAGE_TYPE_ATTACK:
-                //onReceiveAttackInfo(endpoint, msg);
+                onReceiveAttackInfo(endpoint, msg);
                 break;
             case GameMessage.GAME_MESSAGE_TYPE_QUESTION:
                 onReceiveQuestion(msg);
@@ -775,11 +752,11 @@ public class PlayActivity extends ConnectionsActivity implements View.OnClickLis
             player = me;
             player.setPlayerDetails(msg);
             updateLocalPlayerUi();
-            if (me.getPoints() == 0) {
-                //TODO disable attack?
+            if (me.getPoints() != 0) {
+                buttonAttack.setEnabled(true);
             }
         } else {
-            player = mPlayersViewAdapter.getPlayer(msg.playerInfo.endpointId);
+            player = mPlayersViewAdapter.getPlayer(msg.playerInfo.uniqueId);
             // The first time we receive a player's info, we add it to the UI
             if (player == null) {
                 player = new Player(this);
@@ -790,6 +767,23 @@ public class PlayActivity extends ConnectionsActivity implements View.OnClickLis
                 mPlayersViewAdapter.notifyDataSetChanged();
             }
         }
+    }
+
+    private void onReceiveAttackInfo(Endpoint endpoint, GameMessage msg) {
+        Log.d(TAG, "onReceiveAttackInfo");
+        Player attacker;
+        Player victim;
+        if (me.getUniqueID().equals(msg.attackInfo.attackerId)) {
+            attacker = me;
+            victim = mPlayersViewAdapter.getPlayer(msg.attackInfo.victimId);
+        } else if (me.getUniqueID().equals(msg.attackInfo.victimId)) {
+            victim = me;
+            attacker = mPlayersViewAdapter.getPlayer(msg.attackInfo.attackerId);
+        } else {
+            // We don't care about other people's battles
+            return;
+        }
+        animateAttack(attacker, victim, msg.attackInfo.defending, msg.attackInfo.killed);
     }
 
     private void onReceiveQuestion(GameMessage msg) {
@@ -823,12 +817,12 @@ public class PlayActivity extends ConnectionsActivity implements View.OnClickLis
     private void sendPlayerDetails() {
         Log.d(TAG, "sendPlayerDetails");
         GameMessage msg = me.getPlayerDetails();
-        send(Payload.fromBytes(msg.toBytes()));
-    }
-
-    private void cleanupAndDisconnectEndpoint(Endpoint endpoint) {
-        disconnect(endpoint);
-        removePlayer(endpoint.getName());
+        if (singlePlayerMode) {
+            // Simulate the task master sending the player info to everyone, including ourselves
+            onReceive(null, Payload.fromBytes(msg.toBytes()));
+        } else {
+            send(Payload.fromBytes(msg.toBytes()));
+        }
     }
 
     // --- A bunch of functions used by the connection callbacks ----
@@ -907,7 +901,66 @@ public class PlayActivity extends ConnectionsActivity implements View.OnClickLis
     }
 
     @Override
-    public void onClickPlayer(Player player) {
-        Log.v(TAG, "onClickPlayer: " + player.getName());
+    public void onClickPlayer(Player victim) {
+        Log.v(TAG, "onClickPlayer: " + victim.getName());
+        // Check if it was a player button
+        mPlayersViewAdapter.setClickable(false);
+        if (singlePlayerMode) {
+            // Simulate task master calculating results and informing us back
+            GameMessage msg = new GameMessage();
+            msg.setType(GameMessage.GAME_MESSAGE_TYPE_ATTACK);
+            msg.attackInfo.attackerId = me.getUniqueID();
+            msg.attackInfo.victimId = victim.getUniqueID();
+            msg.attackInfo.defending = victim.getCombatMode() == Player.COMBAT_MODE_DEFEND;
+            int damage = me.getCharacter().getAttack();
+            if (msg.attackInfo.defending) {
+                damage -= victim.getCharacter().getDefense();
+            }
+            if (damage < 0) {
+                damage = 0;
+            }
+            int victimHealth = victim.getHealth() - damage;
+            if (victimHealth <= 0) {
+                victim.setHealth(0);
+                msg.attackInfo.killed = true;
+            } else {
+                victim.setHealth(victimHealth);
+            }
+            // Attacking is not free...
+            me.setPoints(me.getPoints()-1);
+            // Send attack details
+            onReceive(null, Payload.fromBytes(msg.toBytes()));
+            // Send updated player info
+            msg = victim.getPlayerDetails();
+            onReceive(null, Payload.fromBytes(msg.toBytes()));
+            msg = me.getPlayerDetails();
+            onReceive(null, Payload.fromBytes(msg.toBytes()));
+        } else {
+            GameMessage msg = new GameMessage();
+            msg.setType(GameMessage.GAME_MESSAGE_TYPE_ATTACK);
+            msg.attackInfo.victimId = victim.getUniqueID();
+            broadcastMessage(msg);
+        }
+        buttonHeal.setEnabled(true);
+        if (me.getPoints() != 0) {
+            buttonAttack.setEnabled(true);
+        }
+        buttonDefend.setEnabled(true);
+    }
+
+
+    // OpenTriviaDatabase callbacks (for single player mode
+
+    @Override
+    public void onCategoriesChanged(List<String> categories) {
+        // Do nothing
+    }
+    private boolean waitingForQuestion = false;
+    @Override
+    public void onQuestionsAvailable(boolean available) {
+        if (available && waitingForQuestion) {
+            waitingForQuestion = false;
+            pickQuestion();
+        }
     }
 }

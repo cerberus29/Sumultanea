@@ -51,18 +51,22 @@ class PlayersViewAdapter extends ArrayAdapter<Player> implements View.OnClickLis
             holder.textView = convertView.findViewById(R.id.textViewPlayerName);
             holder.progressBar = convertView.findViewById(R.id.progressBarPlayerHealth);
             holder.progressBar.getProgressDrawable().setColorFilter(Color.RED, android.graphics.PorterDuff.Mode.SRC_IN);
+            holder.imageButton.setTag(holder);
             convertView.setTag(holder);
         } else {
             holder = (ViewHolder) convertView.getTag();
         }
 
         final Player player = getItem(position);
-
-        holder.imageButton.setTag(R.id.id_player, player);
-        AnimationDrawable animationDrawable = player.getAnimation();
-        holder.imageButton.setImageDrawable(animationDrawable);
-        animationDrawable.start();
-        holder.imageButton.setEnabled(mClickable && player.getHealth() != 0);
+        boolean dead = player.getHealth() == 0;
+        if (dead) {
+            holder.imageButton.setImageResource(player.getCharacter().getDeadImageId());
+        } else {
+            AnimationDrawable animationDrawable = player.getAnimation();
+            holder.imageButton.setImageDrawable(animationDrawable);
+            animationDrawable.start();
+        }
+        holder.imageButton.setEnabled(mClickable && !dead);
 
         holder.textView.setText(player.getName());
         holder.progressBar.setProgress(player.getHealth());
@@ -80,6 +84,17 @@ class PlayersViewAdapter extends ArrayAdapter<Player> implements View.OnClickLis
         }
     }
 
+    public boolean hasEveryoneAnswered() {
+        for (int i = 0; i < getCount(); i++) {
+            final Player player = getItem(i);
+            if (player == null)
+                continue;
+            if (!player.hasAnswered()) {
+                return false;
+            }
+        }
+        return true;
+    }
 
     @Override
     public void onClick(View v) {
@@ -102,12 +117,34 @@ class PlayersViewAdapter extends ArrayAdapter<Player> implements View.OnClickLis
         }
     }
 
-    Player getPlayer(String endpointId) {
+    Player getPlayer(String uniqueId) {
+        for (int i = 0; i < getCount(); i++) {
+            final Player player = getItem(i);
+            if (player == null)
+                continue;
+            if (player.getUniqueID().equals(uniqueId))
+                return player;
+        }
+        return null;
+    }
+
+    Player getPlayerByEndpointId(String endpointId) {
         for (int i = 0; i < getCount(); i++) {
             final Player player = getItem(i);
             if (player == null)
                 continue;
             if (player.getEndpoint().getId().equals(endpointId))
+                return player;
+        }
+        return null;
+    }
+
+    Player getPlayerByName(String name) {
+        for (int i = 0; i < getCount(); i++) {
+            final Player player = getItem(i);
+            if (player == null)
+                continue;
+            if (player.getName().equals(name))
                 return player;
         }
         return null;
