@@ -59,6 +59,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import static com.sombright.simultanea.Constants.SERVICE_ID;
 import static com.sombright.simultanea.MainActivity.TAG;
 
 public class PlayActivity extends ConnectionsActivity implements View.OnClickListener, PlayersViewAdapter.OnClickPlayerListener, OpenTriviaDatabase.Listener {
@@ -84,7 +85,6 @@ public class PlayActivity extends ConnectionsActivity implements View.OnClickLis
                     Manifest.permission.ACCESS_COARSE_LOCATION,
             };
     private static final int REQUEST_CODE_REQUIRED_PERMISSIONS = 1;
-    private static final String SERVICE_ID = PlayActivity.class.getName();
     TextView questionText;
     private Random random = new Random();
     private LinearLayout answersLayout;
@@ -204,6 +204,11 @@ public class PlayActivity extends ConnectionsActivity implements View.OnClickLis
         questionText.setText(R.string.waiting_for_master);
         answersLayout.removeAllViews();
         startDiscovering();
+    }
+
+    @Override
+    protected void onDiscoveryStarted() {
+        Log.d(TAG, "onDiscoveryStarted");
     }
 
     @Override
