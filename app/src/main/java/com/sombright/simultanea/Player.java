@@ -108,7 +108,7 @@ public class Player {
     }
 
     public AnimationDrawable getAnimation() {
-        if (mAnimation == null) {
+        if (mAnimation == null && mCharacter != null) {
             mAnimation = (AnimationDrawable) ContextCompat.getDrawable(mContext, mCharacter.getImageResource());
         }
         return mAnimation;

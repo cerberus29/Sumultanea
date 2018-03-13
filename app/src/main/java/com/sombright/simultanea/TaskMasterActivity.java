@@ -12,6 +12,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.GridView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.SpinnerAdapter;
@@ -36,6 +37,7 @@ public class TaskMasterActivity extends ConnectionsActivity implements PlayersVi
 
     private PreferencesProxy mPrefs;
     private PlayersViewAdapter mPlayersViewAdapter;
+    private GridView mPlayersView;
     private Button mButtonStartGame, mButtonQuestion, mButtonBattle;
     private LinearLayout mQuestionsLayout;
     private QuizPool quizPool = null;
@@ -55,8 +57,7 @@ public class TaskMasterActivity extends ConnectionsActivity implements PlayersVi
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_task_master);
-        mButtonStartGame = findViewById(R.id.buttonStartGame);
-        mButtonStartGame.setText(R.string.waiting_for_players);
+        mPlayersView = findViewById(R.id.otherPlayersLayout);
         mButtonQuestion = findViewById(R.id.buttonQuestion);
         mQuestionsLayout = findViewById(R.id.questionLayout);
         mQuestionCategorySpinner = findViewById(R.id.spinnerCategory);
@@ -68,6 +69,7 @@ public class TaskMasterActivity extends ConnectionsActivity implements PlayersVi
 
         mPrefs = new PreferencesProxy(this);
         mPlayersViewAdapter = new PlayersViewAdapter(this, R.layout.players_example_item, this);
+        mPlayersView.setAdapter(mPlayersViewAdapter);
         //quizPool = new QuizPool(this);
         startAdvertising();
 
@@ -104,16 +106,19 @@ public class TaskMasterActivity extends ConnectionsActivity implements PlayersVi
 
     @Override
     protected String getName() {
+        Log.d(TAG, "Name=" + mPrefs.getMultiPlayerAlias());
         return mPrefs.getMultiPlayerAlias();
     }
 
     @Override
     protected String getServiceId() {
+        Log.d(TAG, "SERVICE_ID=" + SERVICE_ID);
         return SERVICE_ID;
     }
 
     @Override
     protected Strategy getStrategy() {
+        Log.d(TAG, "STRATEGY=" + STRATEGY);
         return STRATEGY;
     }
 
@@ -166,6 +171,13 @@ public class TaskMasterActivity extends ConnectionsActivity implements PlayersVi
     }
 
     @Override
+    protected void onEndpointDisconnected(Endpoint endpoint) {
+        Log.v(TAG, "onEndpointDisconnected: " + endpoint.getName());
+        Player player = mPlayersViewAdapter.getPlayerByEndpointId(endpoint.getId());
+        mPlayersViewAdapter.remove(player);
+    }
+
+    @Override
     protected void onReceive(Endpoint endpoint, Payload payload) {
         GameMessage msg = GameMessage.fromBytes(payload.asBytes());
         assert msg != null;
@@ -186,6 +198,7 @@ public class TaskMasterActivity extends ConnectionsActivity implements PlayersVi
         Log.d(TAG, "onReceivePlayerInfo");
         Player player = mPlayersViewAdapter.getPlayerByEndpointId(endpoint.getId());
         player.setCharacter(msg.playerInfo.character);
+        mPlayersViewAdapter.notifyDataSetChanged();
         broadcastMessage(msg);
     }
 

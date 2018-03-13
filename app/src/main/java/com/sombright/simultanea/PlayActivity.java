@@ -60,6 +60,7 @@ import java.util.Map;
 import java.util.Random;
 
 import static com.sombright.simultanea.Constants.SERVICE_ID;
+import static com.sombright.simultanea.Constants.STRATEGY;
 import static com.sombright.simultanea.MainActivity.TAG;
 
 public class PlayActivity extends ConnectionsActivity implements View.OnClickListener, PlayersViewAdapter.OnClickPlayerListener, OpenTriviaDatabase.Listener {
@@ -71,20 +72,6 @@ public class PlayActivity extends ConnectionsActivity implements View.OnClickLis
     private final static int MESSAGE_DURATION_MS = 1500;
     private final static int LONG_MESSAGE_DURATION_MS = 3000;
     private final static int MAX_PLAYERS = 10;
-    /*
-     * Multiplayer connection code based on the rockpaperscissors example from:
-     * https://github.com/googlesamples/android-nearby
-     */
-    private static final Strategy STRATEGY = Strategy.P2P_STAR;
-    private static final String[] REQUIRED_PERMISSIONS =
-            new String[]{
-                    Manifest.permission.BLUETOOTH,
-                    Manifest.permission.BLUETOOTH_ADMIN,
-                    Manifest.permission.ACCESS_WIFI_STATE,
-                    Manifest.permission.CHANGE_WIFI_STATE,
-                    Manifest.permission.ACCESS_COARSE_LOCATION,
-            };
-    private static final int REQUEST_CODE_REQUIRED_PERMISSIONS = 1;
     TextView questionText;
     private Random random = new Random();
     private LinearLayout answersLayout;
@@ -215,9 +202,6 @@ public class PlayActivity extends ConnectionsActivity implements View.OnClickLis
     protected void onStart() {
         super.onStart();
         Log.d(TAG, "onStart");
-        if (!hasPermissions(this, REQUIRED_PERMISSIONS)) {
-            ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, REQUEST_CODE_REQUIRED_PERMISSIONS);
-        }
         // Background music
         mMusic = MediaPlayer.create(this, R.raw.fight2);
         mMusic.setLooping(true);
@@ -863,46 +847,22 @@ public class PlayActivity extends ConnectionsActivity implements View.OnClickLis
         startDiscovering();
     }
 
-    private void onDisconnectedInternal(String endpointId) {
-        finish();
-    }
-
-    /**
-     * Handles user acceptance (or denial) of our permission request.
-     */
-    @CallSuper
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-
-        if (requestCode != REQUEST_CODE_REQUIRED_PERMISSIONS) {
-            Log.wtf(TAG, "We received permission results for something we didn't request!");
-            return;
-        }
-        for (int grantResult : grantResults) {
-            if (grantResult == PackageManager.PERMISSION_DENIED) {
-                Toast.makeText(this, R.string.error_missing_permissions, Toast.LENGTH_LONG).show();
-                finish();
-                return;
-            }
-        }
-        Log.wtf(TAG, "All the permissions were accepted, let's retry now.");
-        recreate();
-    }
-
     @Override
     protected String getName() {
+        Log.d(TAG, "Name=" + me.getName());
         return me.getName();
     }
 
     @Override
     protected String getServiceId() {
+        Log.d(TAG, "SERVICE_ID=" + SERVICE_ID);
         return SERVICE_ID;
     }
 
     @Override
     protected Strategy getStrategy() {
-        return null;
+        Log.d(TAG, "STRATEGY=" + STRATEGY);
+        return STRATEGY;
     }
 
     @Override

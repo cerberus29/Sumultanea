@@ -14,7 +14,7 @@ class Constants {
     /**
      * This service id lets us find other nearby devices that are interested in the same thing.
      */
-    static final String SERVICE_ID = Constants.class.getPackage() + ".SERVICE_ID";
+    static final String SERVICE_ID = Constants.class.getPackage().getName() + ".SERVICE_ID";
 
     /**
      * The connection strategy we'll use for Nearby Connections. In this case, we've decided on
