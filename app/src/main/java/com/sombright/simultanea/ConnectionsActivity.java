@@ -447,6 +447,12 @@ public abstract class ConnectionsActivity extends AppCompatActivity {
     send(payload, mEstablishedConnections.keySet());
   }
 
+  protected void send(Payload payload, Endpoint endpoint) {
+    Set<String> endpoints = new HashSet<>();
+    endpoints.add(endpoint.getId());
+    send(payload, endpoints);
+  }
+
   private void send(Payload payload, Set<String> endpoints) {
     mConnectionsClient
         .sendPayload(new ArrayList<>(endpoints), payload)

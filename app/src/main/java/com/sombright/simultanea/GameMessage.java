@@ -139,6 +139,9 @@ class GameMessage {
             case GAME_MESSAGE_TYPE_QUESTION:
                 jsonString = gson.toJson(questionInfo);
                 break;
+            case GAME_MESSAGE_TYPE_ANSWER:
+                jsonString = gson.toJson(answerInfo);
+                break;
             default:
                 return null;
         }

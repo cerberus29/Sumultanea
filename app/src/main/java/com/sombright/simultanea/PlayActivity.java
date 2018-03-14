@@ -748,6 +748,7 @@ public class PlayActivity extends ConnectionsActivity implements View.OnClickLis
             player = mPlayersViewAdapter.getPlayer(msg.playerInfo.uniqueId);
             // The first time we receive a player's info, we add it to the UI
             if (player == null) {
+                Log.d(TAG, "Adding player with UUID=" + msg.playerInfo.uniqueId);
                 player = new Player(this);
                 player.setPlayerDetails(msg);
                 mPlayersViewAdapter.add(player);

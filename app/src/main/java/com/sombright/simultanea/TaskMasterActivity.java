@@ -58,6 +58,7 @@ public class TaskMasterActivity extends ConnectionsActivity implements PlayersVi
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_task_master);
         mPlayersView = findViewById(R.id.otherPlayersLayout);
+        mButtonStartGame = findViewById(R.id.buttonStartGame);
         mButtonQuestion = findViewById(R.id.buttonQuestion);
         mQuestionsLayout = findViewById(R.id.questionLayout);
         mQuestionCategorySpinner = findViewById(R.id.spinnerCategory);
@@ -197,9 +198,20 @@ public class TaskMasterActivity extends ConnectionsActivity implements PlayersVi
     private void onReceivePlayerInfo(Endpoint endpoint, GameMessage msg) {
         Log.d(TAG, "onReceivePlayerInfo");
         Player player = mPlayersViewAdapter.getPlayerByEndpointId(endpoint.getId());
-        player.setCharacter(msg.playerInfo.character);
+        boolean isNew = player.getCharacter() == null;
+        player.setPlayerDetails(msg);
         mPlayersViewAdapter.notifyDataSetChanged();
         broadcastMessage(msg);
+        // Inform new player of other players already connected
+        if (isNew) {
+            for (int i = 0; i < mPlayersViewAdapter.getCount(); i++) {
+                player = mPlayersViewAdapter.getItem(i);
+                if (player.getEndpoint() != endpoint) {
+                    msg = player.getPlayerDetails();
+                    send(Payload.fromBytes(msg.toBytes()), endpoint);
+                }
+            }
+        }
     }
 
     private void onReceiveAnswer(Endpoint endpoint, GameMessage msg) {
