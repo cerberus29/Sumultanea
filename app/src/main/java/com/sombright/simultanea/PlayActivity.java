@@ -190,7 +190,6 @@ public class PlayActivity extends ConnectionsActivity implements View.OnClickLis
 
         questionText.setText(R.string.waiting_for_master);
         answersLayout.removeAllViews();
-        startDiscovering();
     }
 
     @Override
@@ -212,13 +211,17 @@ public class PlayActivity extends ConnectionsActivity implements View.OnClickLis
         super.onResume();
         Log.d(TAG, "onResume");
         mMusic.start();
+        startDiscovering();
     }
 
     @Override
     protected void onPause() {
+        super.onPause();
         Log.d(TAG, "onPause");
         mMusic.pause();
-        super.onPause();
+        if (isDiscovering()) {
+            stopDiscovering();
+        }
     }
 
     @Override

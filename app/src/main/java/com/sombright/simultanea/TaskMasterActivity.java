@@ -72,7 +72,6 @@ public class TaskMasterActivity extends ConnectionsActivity implements PlayersVi
         mPlayersViewAdapter = new PlayersViewAdapter(this, R.layout.players_example_item, this);
         mPlayersView.setAdapter(mPlayersViewAdapter);
         //quizPool = new QuizPool(this);
-        startAdvertising();
 
         mQuestionsLayout.setVisibility(View.GONE);
         if (mPrefs.shouldUseOpenTriviaDatabase()) {
@@ -103,6 +102,20 @@ public class TaskMasterActivity extends ConnectionsActivity implements PlayersVi
         mQuestionTypeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         mQuestionTypeSpinner.setAdapter(mQuestionTypeAdapter);
         mQuestionTypeSpinner.setSelection(OpenTriviaDatabase.TYPE_MULTIPLE_CHOICE);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        startAdvertising();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (isAdvertising()) {
+            stopAdvertising();
+        }
     }
 
     @Override
