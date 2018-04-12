@@ -3,8 +3,6 @@ package com.sombright.simultanea;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.os.Parcel;
-import android.os.Parcelable;
 import android.util.Xml;
 
 import org.xmlpull.v1.XmlPullParser;
@@ -126,7 +124,7 @@ class QuizPool {
     static final int TYPE_IDENTIFICATION = 1;
     static final int TYPE_TRUE_FALSE = 2;
 
-    private List parse(InputStream in) throws XmlPullParserException, IOException {
+    private List<Entry> parse(InputStream in) throws XmlPullParserException, IOException {
         try {
             XmlPullParser parser = Xml.newPullParser();
             parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
@@ -138,8 +136,8 @@ class QuizPool {
         }
     }
 
-    private List readPool(XmlPullParser parser) throws XmlPullParserException, IOException {
-        ArrayList<Entry> entries = new ArrayList<>();
+    private List<Entry> readPool(XmlPullParser parser) throws XmlPullParserException, IOException {
+        List<Entry> entries = new ArrayList<>();
 
         parser.require(XmlPullParser.START_TAG, ns, KEY_QUIZ);
         while (parser.next() != XmlPullParser.END_TAG) {
